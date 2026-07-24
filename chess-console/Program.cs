@@ -1,12 +1,12 @@
-﻿using chess_console.Board;
+﻿using board;
+using chess_console;
 
 internal class Program
 {
     static void Main(string[] args)
     {
-        Position position = new Position(1, 2);
-        
-        Console.WriteLine("Position: " + position);
+        Board board = new Board(8, 8);
+        Screen.printScreen(board);
     }
 }
 
