@@ -14,4 +14,8 @@ public class Piece
         this.board = board;
         this._moveCount = 0;
     }
+    
+    public Color GetColor() {
+        return this.color;
+    }
 }

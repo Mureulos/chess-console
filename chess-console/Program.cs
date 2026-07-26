@@ -10,8 +10,7 @@ internal class Program
         try
         {
             Board board = new Board(8, 8);
-            board.PutPiece(new King(board, Color.White), new Position(1, 3));
-            board.PutPiece(new King(board, Color.White), new Position(1, 3));
+            board.PutPiece(new King(board, Color.Black), new Position(1, 3));
             Screen.PrintScreen(board);
         }
         catch (BoardException e)
