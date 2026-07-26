@@ -60,8 +60,8 @@ public class Board
 
     public Piece RemovePiece(Position position)
     {
-        if (!PieceExists(position))
-            throw new BoardException("No piece at the given position!");
+        if (piece(position) == null)
+            return null;
 
         Piece aux = piece(position);
         _pieces[position.row, position.column] = null;

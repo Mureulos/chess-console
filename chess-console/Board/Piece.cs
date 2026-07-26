@@ -18,4 +18,9 @@ public class Piece
     public Color GetColor() {
         return this.color;
     }
+
+    public void AddMove()
+    {
+        _moveCount++;   
+    }
 }

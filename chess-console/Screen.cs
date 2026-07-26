@@ -1,5 +1,6 @@
 using System;
 using board;
+using chess;
 
 namespace chess_console;
 
@@ -11,20 +12,20 @@ public class Screen
         ConsoleColor originalForeground = Console.ForegroundColor;
 
         Console.WriteLine("    a  b  c  d  e  f  g  h");
-        Console.WriteLine("  -------------------------");
+        Console.WriteLine("   ────────────────────────");
 
         for (int i = 0; i < board.rows; i++)
         {
             Console.BackgroundColor = originalBackground;
             Console.ForegroundColor = originalForeground;
-            Console.Write((8 - i) + " |");
+            Console.Write((8 - i) + " │");
 
             for (int j = 0; j < board.colums; j++)
             {
                 if ((i + j) % 2 == 0)
-                    Console.BackgroundColor = ConsoleColor.White;
+                    Console.BackgroundColor = ConsoleColor.Blue;
                 else
-                    Console.BackgroundColor = ConsoleColor.Black;
+                    Console.BackgroundColor = ConsoleColor.DarkBlue;
 
                 Piece piece = board.piece(i, j);
 
@@ -33,9 +34,9 @@ public class Screen
                 else
                 {
                     if (piece.GetColor() == Color.White)
-                        Console.ForegroundColor = ConsoleColor.Blue;
+                        Console.ForegroundColor = ConsoleColor.White;
                     else
-                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.ForegroundColor = ConsoleColor.Black;
 
                     Console.Write(" " + piece + " ");
                     Console.ForegroundColor = originalForeground;
@@ -43,12 +44,20 @@ public class Screen
             }
 
             Console.BackgroundColor = originalBackground;
-            Console.WriteLine("|");
+            Console.WriteLine("│");
         }
 
         Console.BackgroundColor = originalBackground;
-        Console.WriteLine("  -------------------------");
+        Console.WriteLine("   ────────────────────────");
         Console.WriteLine("    a  b  c  d  e  f  g  h");
         Console.WriteLine("");
+    }
+    
+    public static ChessPosition ReadChessPosition()
+    {
+        string s = Console.ReadLine();
+        char column = s[0];
+        int row = int.Parse(s[1].ToString());
+        return new ChessPosition(column, row);
     }
 }
