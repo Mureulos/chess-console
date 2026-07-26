@@ -17,4 +17,10 @@ public class Board
     {
         return _pieces[row, colums];
     }
+
+    public void PutPiece(Piece piece, Position position)
+    {
+        _pieces[position.row, position.column] = piece;
+        piece.position = position;
+    }
 }

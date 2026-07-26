@@ -7,7 +7,7 @@ public class Piece
     public Board board { get; set; } 
     private int _moveCount { get; set; }
 
-    public Piece(Position position, Color color, Board board)
+    public Piece(Board board, Color color)
     {
         this.position = position;
         this.color = color;

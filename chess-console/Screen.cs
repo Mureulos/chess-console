@@ -4,7 +4,7 @@ namespace chess_console;
 
 public class Screen
 {
-    public static void printScreen(Board board)
+    public static void PrintScreen(Board board)
     {
         for (int i = 0; i < board.rows; i++)
         {
