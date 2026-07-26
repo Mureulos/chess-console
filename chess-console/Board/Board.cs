@@ -8,7 +8,7 @@ public class Board
     public int colums { get; set; }
     private Piece[,] _pieces;   
     
-    public Board(int rows, int colums)
+    public Board(int rows = 8, int colums = 8)
     {
         this.rows = rows;
         this.colums = colums;
@@ -22,6 +22,10 @@ public class Board
     
     public Piece piece(Position position)
     {
+        if (position == null)
+            return null;
+        
+        ValidatePosition(position);
         return _pieces[position.row, position.column];
     }
 
@@ -52,5 +56,16 @@ public class Board
         
         _pieces[position.row, position.column] = piece;
         piece.position = position;
+    }
+
+    public Piece RemovePiece(Position position)
+    {
+        if (!PieceExists(position))
+            throw new BoardException("No piece at the given position!");
+
+        Piece aux = piece(position);
+        _pieces[position.row, position.column] = null;
+        aux.position = null;
+        return aux;
     }
 }
