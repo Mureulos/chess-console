@@ -1,3 +1,5 @@
+using chess_console.Exceptions;
+
 namespace board;
 
 public class Board
@@ -17,9 +19,37 @@ public class Board
     {
         return _pieces[row, colums];
     }
+    
+    public Piece piece(Position position)
+    {
+        return _pieces[position.row, position.column];
+    }
 
+    private bool IsPositionValid(Position position)
+    {
+        if (position.row < 0 || position.row >= rows || position.column < 0 || position.column >= colums)
+            return false;
+        
+        return true;
+    }
+
+    private void ValidatePosition(Position position)
+    {
+        if (!IsPositionValid(position))
+            throw new BoardException("Invalid position!");
+    }
+    
+    private bool PieceExists(Position position)
+    {
+        ValidatePosition(position);
+        return _pieces[position.row, position.column] != null;
+    }
+    
     public void PutPiece(Piece piece, Position position)
     {
+        if (PieceExists(position))
+            throw new BoardException("Piece already exists!");
+        
         _pieces[position.row, position.column] = piece;
         piece.position = position;
     }
