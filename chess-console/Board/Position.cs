@@ -11,8 +11,14 @@ public class Position
         this.column = column;
     }
 
-    override public string ToString()
+    public override string ToString()
     {
         return "(" + row + "," + column + ")";
+    }
+
+    public void defineValues(int row, int column)
+    {
+        this.row = row;
+        this.column = column;
     }
 }

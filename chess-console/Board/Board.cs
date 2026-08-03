@@ -5,19 +5,19 @@ namespace board;
 public class Board
 {   
     public int rows { get; set; }
-    public int colums { get; set; }
+    public int columns { get; set; }
     private Piece[,] _pieces;   
     
-    public Board(int rows = 8, int colums = 8)
+    public Board(int rows = 8, int columns = 8)
     {
         this.rows = rows;
-        this.colums = colums;
-        _pieces = new Piece[rows, colums];
+        this.columns = columns;
+        _pieces = new Piece[rows, columns];
     }
     
-    public Piece piece(int row, int colums)
+    public Piece piece(int row, int columns)
     {
-        return _pieces[row, colums];
+        return _pieces[row, columns];
     }
     
     public Piece piece(Position position)
@@ -29,9 +29,9 @@ public class Board
         return _pieces[position.row, position.column];
     }
 
-    private bool IsPositionValid(Position position)
+    public bool IsPositionValid(Position position)
     {
-        if (position.row < 0 || position.row >= rows || position.column < 0 || position.column >= colums)
+        if (position.row < 0 || position.row >= rows || position.column < 0 || position.column >= columns)
             return false;
         
         return true;

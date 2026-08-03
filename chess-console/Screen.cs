@@ -6,7 +6,7 @@ namespace chess_console;
 
 public class Screen
 {
-    public static void PrintScreen(Board board)
+    public static void PrintScreen(Board board, bool [,] possibleMoves = null)
     {
         ConsoleColor originalBackground = Console.BackgroundColor;
         ConsoleColor originalForeground = Console.ForegroundColor;
@@ -20,10 +20,12 @@ public class Screen
             Console.ForegroundColor = originalForeground;
             Console.Write((8 - i) + " │");
 
-            for (int j = 0; j < board.colums; j++)
+            for (int j = 0; j < board.columns; j++)
             {
-                if ((i + j) % 2 == 0)
-                    Console.BackgroundColor = ConsoleColor.Blue;
+                if (possibleMoves != null && possibleMoves[i, j])
+                    Console.BackgroundColor = ConsoleColor.DarkCyan;
+                else if ((i + j) % 2 == 0)
+                    Console.BackgroundColor = ConsoleColor.Blue; 
                 else
                     Console.BackgroundColor = ConsoleColor.DarkBlue;
 
@@ -34,7 +36,7 @@ public class Screen
                 else
                 {
                     if (piece.GetColor() == Color.White)
-                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.ForegroundColor = ConsoleColor.DarkRed;
                     else
                         Console.ForegroundColor = ConsoleColor.Black;
 

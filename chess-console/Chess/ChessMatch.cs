@@ -28,6 +28,12 @@ public class ChessMatch
     
     public void SetBoard()
     {
-        board.PutPiece(new King(board, Color.Black), new ChessPosition('c', 1).ToPosition());
+        board.PutPiece(new King(board, Color.Black), new ChessPosition('d', 1).ToPosition());
+        board.PutPiece(new Tower(board, Color.Black), new ChessPosition('a', 1).ToPosition());
+        board.PutPiece(new Tower(board, Color.Black), new ChessPosition('h', 1).ToPosition());
+        
+        board.PutPiece(new King(board, Color.White), new ChessPosition('d', 8).ToPosition());
+        board.PutPiece(new Tower(board, Color.White), new ChessPosition('a', 8).ToPosition());
+        board.PutPiece(new Tower(board, Color.White), new ChessPosition('h', 8).ToPosition());
     }
 }

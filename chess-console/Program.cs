@@ -14,10 +14,13 @@ internal class Program
             while(chessMatch.completed == false)
             {
                 Console.Clear();
-                Screen.PrintScreen(chessMatch.board);
+                Screen.PrintScreen(chessMatch.board, null);
                 
                 Console.Write("Origin: ");
                 Position origin = Screen.ReadChessPosition().ToPosition();
+
+                bool[,] possibleMoves = chessMatch.board.piece(origin).PossibleMoves();
+                Screen.PrintScreen(chessMatch.board, possibleMoves);
                 
                 Console.Write("Target: ");
                 Position target = Screen.ReadChessPosition().ToPosition();
