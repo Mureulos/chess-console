@@ -24,5 +24,25 @@ public abstract class Piece
         _moveCount++;   
     }
 
+    public bool HasPossibleMoves()
+    {
+        bool [,] matrix = PossibleMoves();
+        for (int i = 0; i < board.rows; i++)
+        {
+            for (int j = 0; j < board.columns; j++)
+            {
+                if (matrix[i, j] == true)
+                    return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    public bool CanMoveTo(Position position)
+    {
+        return PossibleMoves()[position.row, position.column];
+    }
+
     public abstract bool[,] PossibleMoves();
 }
