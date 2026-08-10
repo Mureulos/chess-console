@@ -37,6 +37,13 @@ internal class Program
                 Console.ReadLine();
             }
         }
+        
+        Console.Clear();
+        display.DisplayFullGame(chessMatch);
+        Console.WriteLine("╔════════════════════════╗");
+        Console.WriteLine($"║ 🏁 GAME OVER!          ║");
+        Console.WriteLine($"║ Winner: {chessMatch.Opponent(chessMatch.actualPlayerColor),-8} ║");
+        Console.WriteLine("╚════════════════════════╝");
     }
 }
 

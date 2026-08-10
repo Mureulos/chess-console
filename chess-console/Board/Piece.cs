@@ -23,6 +23,11 @@ public abstract class Piece
     {
         _moveCount++;   
     }
+    
+    public void SubMove()
+    {
+        _moveCount--;   
+    }
 
     public bool HasPossibleMoves()
     {

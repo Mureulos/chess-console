@@ -82,6 +82,15 @@ public class GameDisplay
         Console.WriteLine("┌─────────────────────────┐");
         Console.WriteLine($"│ Turn: {match.turn,2}           │");
         Console.WriteLine($"│ Player: {match.actualPlayerColor,-11}│");
+        
+        if (match.check)
+        {
+            if (match.completed)
+                Console.WriteLine("│ ⚠️  CHECKMATE!           │");
+            else
+                Console.WriteLine("│ ⚠️  CHECK!               │");
+        }
+        
         Console.WriteLine("└─────────────────────────┘");
         Console.WriteLine();
     }
