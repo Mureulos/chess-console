@@ -201,18 +201,17 @@ public class ChessMatch
                 {
                     if (matrix[i, j])
                     {
+                        Position origin = new Position(piece.position.row, piece.position.column);
                         Position target = new Position(i, j);
-                        Piece caughtPiece = ExecuteMoviment(piece.position, new Position(i, j));
+                        Piece caughtPiece = ExecuteMoviment(origin, target);
                         bool verifyCheck = IsInCheck(color);
-                        UndoMoviment(piece.position, target, caughtPiece);
+                        UndoMoviment(origin, target, caughtPiece);
 
                         if (!verifyCheck)
                             return false;
                     }
                 }
             }
-
-            return true;
         }
 
         return true;
