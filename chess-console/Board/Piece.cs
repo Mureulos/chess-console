@@ -5,14 +5,14 @@ public abstract class Piece
     public Position position { get; set; }
     public Color color { get; set; }
     public Board board { get; set; } 
-    public int _moveCount { get; set; }
+    public int moveCount { get; set; }
 
     public Piece(Board board, Color color)
     {
         this.position = position;
         this.color = color;
         this.board = board;
-        this._moveCount = 0;
+        this.moveCount = 0;
     }
     
     public Color GetColor() {
@@ -21,12 +21,12 @@ public abstract class Piece
 
     public void AddMove()
     {
-        _moveCount++;   
+        moveCount++;   
     }
     
     public void SubMove()
     {
-        _moveCount--;   
+        moveCount--;   
     }
 
     public bool HasPossibleMoves()

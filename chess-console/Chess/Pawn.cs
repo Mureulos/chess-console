@@ -4,8 +4,11 @@ namespace chess;
 
 public class Pawn : Piece
 {
-    public Pawn(Board board, Color color) : base(board, color)
+    private ChessMatch _chessMatch;
+    
+    public Pawn(Board board, Color color, ChessMatch chessMatch) : base(board, color)
     {
+        _chessMatch = chessMatch;
     }
 
     public override string ToString()
@@ -55,6 +58,19 @@ public class Pawn : Piece
             {
                 matrix[position.row, position.column] = true;
             }
+
+            if (this.position.row == 3)
+            {
+                Position left = new Position(this.position.row, this.position.column - 1);
+                
+                if (board.IsPositionValid(left) && ExistEnemie(left) && board.piece(left) == _chessMatch.vulnerableEnPassant)
+                    matrix[left.row - 1, left.column] = true;
+                
+                Position right  = new Position(this.position.row, this.position.column + 1);
+                
+                if (board.IsPositionValid(right) && ExistEnemie(right) && board.piece(right) == _chessMatch.vulnerableEnPassant)
+                    matrix[right.row - 1, right.column] = true;
+            }
         }
         else
         {
@@ -81,6 +97,19 @@ public class Pawn : Piece
             if (board.IsPositionValid(position) && ExistEnemie(position))
             {
                 matrix[position.row, position.column] = true;
+            }
+            
+            if (this.position.row == 4)
+            {
+                Position left = new Position(this.position.row, this.position.column - 1);
+                
+                if (board.IsPositionValid(left) && ExistEnemie(left) && board.piece(left) == _chessMatch.vulnerableEnPassant)
+                    matrix[left.row - 1, left.column] = true;
+                
+                Position right  = new Position(this.position.row, this.position.column + 1);
+                
+                if (board.IsPositionValid(right) && ExistEnemie(right) && board.piece(right) == _chessMatch.vulnerableEnPassant)
+                    matrix[right.row + 1, right.column] = true;
             }
         }
         
