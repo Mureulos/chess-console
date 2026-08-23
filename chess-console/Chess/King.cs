@@ -25,7 +25,7 @@ public class King : Piece
     private bool CanRock(Position position)
     {
         Piece piece = board.piece(position);
-        return piece != null && piece is Tower && piece.color == color && piece._moveCount == 0;
+        return piece != null && piece is Tower && piece.color == color && piece.moveCount == 0;
     }
     
     public override bool[,] PossibleMoves()
@@ -89,7 +89,7 @@ public class King : Piece
             matrix[position.row, position.column] = true;
         }
         
-        if (_moveCount == 0 && !_chessMatch.check)
+        if (moveCount == 0 && !_chessMatch.check)
         {
             Position rockPosition1 = new Position(this.position.row, this.position.column + 3);
             if (CanRock(rockPosition1))

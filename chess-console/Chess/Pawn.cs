@@ -42,7 +42,7 @@ public class Pawn : Piece
             
             position.defineValues(this.position.row - 2, this.position.column);
             Position betweenPosition = new Position(this.position.row - 1, this.position.column);
-            if (board.IsPositionValid(position) && Free(position) && Free(betweenPosition) && _moveCount == 0)
+            if (board.IsPositionValid(position) && Free(position) && Free(betweenPosition) && moveCount == 0)
             {
                 matrix[position.row, position.column] = true;
             }
@@ -82,7 +82,7 @@ public class Pawn : Piece
             
             position.defineValues(this.position.row + 2, this.position.column);
             Position betweenPosition = new Position(this.position.row + 1, this.position.column);
-            if (board.IsPositionValid(position) && Free(position) && Free(betweenPosition) && _moveCount == 0)
+            if (board.IsPositionValid(position) && Free(position) && Free(betweenPosition) && moveCount == 0)
             {
                 matrix[position.row, position.column] = true;
             }

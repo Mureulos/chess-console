@@ -132,6 +132,21 @@ public class ChessMatch
             throw new BoardException("You can't put yourself in check");
         }
         
+        Piece piece = board.piece(target);
+
+        if (piece is Piece)
+        {
+            if ((piece.color == Color.White && target.row == 0) || (piece.color == Color.Black && target.row == 7))
+            {
+                piece = board.RemovePiece(target);
+                _pieces.Remove(piece);  
+                
+                Piece queen = new Queen(board, piece.color);
+                board.PutPiece(queen, target);
+                _pieces.Add(queen);
+            }
+        }
+        
         if (IsInCheck(Opponent(actualPlayerColor)))
             check = true;
         else
@@ -145,7 +160,6 @@ public class ChessMatch
         turn++; 
         ChangePlayer();
         
-        Piece piece = board.piece(target);
         if (piece is Pawn && (target.row == origin.row - 2 || target.row == origin.row + 2))
             vulnerableEnPassant = piece;
         else
