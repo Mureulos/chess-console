@@ -2,15 +2,15 @@ using board;
 
 namespace chess;
 
-public class King : Piece
+public class Knight : Piece
 {
-    public King(Board board, Color color) : base(board, color)
+    public Knight(Board board, Color color) : base(board, color)
     {
     }
 
     public override string ToString()
     { 
-        return "♚";
+        return "♞"; 
     }
 
     private bool CanMove(Position position)
@@ -24,61 +24,37 @@ public class King : Piece
         bool[,] matrix = new bool[board.rows, board.columns];
         Position position = new Position(0, 0);
         
-        // above
-        position.defineValues(this.position.row - 1, this.position.column);
+        position.defineValues(this.position.row - 1, this.position.column - 2);
         if (board.IsPositionValid(position) && CanMove(position))
-        {
             matrix[position.row, position.column] = true;
-        }
         
-        // northeast
-        position.defineValues(this.position.row - 1, this.position.column + 1);
+        position.defineValues(this.position.row - 2, this.position.column - 1);
         if (board.IsPositionValid(position) && CanMove(position))
-        {
             matrix[position.row, position.column] = true;
-        }
         
-        // right
-        position.defineValues(this.position.row, this.position.column + 1);
+        position.defineValues(this.position.row - 2, this.position.column + 1);
         if (board.IsPositionValid(position) && CanMove(position))
-        {
             matrix[position.row, position.column] = true;
-        }
         
-        // southeast
-        position.defineValues(this.position.row + 1, this.position.column + 1);
+        position.defineValues(this.position.row - 1, this.position.column + 2);
         if (board.IsPositionValid(position) && CanMove(position))
-        {
             matrix[position.row, position.column] = true;
-        }
         
-        // below
-        position.defineValues(this.position.row + 1, this.position.column);
+        position.defineValues(this.position.row + 1, this.position.column + 2);
         if (board.IsPositionValid(position) && CanMove(position))
-        {
             matrix[position.row, position.column] = true;
-        }
         
-        // southwest
-        position.defineValues(this.position.row + 1, this.position.column - 1);
+        position.defineValues(this.position.row + 2, this.position.column + 1);
         if (board.IsPositionValid(position) && CanMove(position))
-        {
             matrix[position.row, position.column] = true;
-        }
         
-        // left
-        position.defineValues(this.position.row, this.position.column - 1);
+        position.defineValues(this.position.row + 2, this.position.column - 1);
         if (board.IsPositionValid(position) && CanMove(position))
-        {
             matrix[position.row, position.column] = true;
-        }
         
-        // northwest
-        position.defineValues(this.position.row - 1, this.position.column - 1);
+        position.defineValues(this.position.row + 1, this.position.column - 2);
         if (board.IsPositionValid(position) && CanMove(position))
-        {
             matrix[position.row, position.column] = true;
-        }
         
         return matrix;
     }

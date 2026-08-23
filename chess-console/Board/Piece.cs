@@ -5,7 +5,7 @@ public abstract class Piece
     public Position position { get; set; }
     public Color color { get; set; }
     public Board board { get; set; } 
-    private int _moveCount { get; set; }
+    public int _moveCount { get; set; }
 
     public Piece(Board board, Color color)
     {

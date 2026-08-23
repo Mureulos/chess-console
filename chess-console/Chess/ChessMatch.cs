@@ -108,12 +108,39 @@ public class ChessMatch
     
     public void SetBoard()  
     {
-        PositionNewPiece('c', 1, new Tower(board, Color.White));
-        PositionNewPiece('d', 1, new King(board, Color.White));
-        PositionNewPiece('e', 1, new Tower(board, Color.White));
-        PositionNewPiece('c', 8, new Tower(board, Color.Black));
-        PositionNewPiece('d', 8, new King(board, Color.Black));
-        PositionNewPiece('e', 8, new Tower(board, Color.Black));
+        PositionNewPiece('a', 1, new Tower(board, Color.White));
+        PositionNewPiece('b', 1, new Knight(board, Color.White));
+        PositionNewPiece('c', 1, new Bishop(board, Color.White));
+        PositionNewPiece('d', 1, new Queen(board, Color.White));
+        PositionNewPiece('e', 1, new King(board, Color.White));
+        PositionNewPiece('f', 1, new Bishop(board, Color.White));
+        PositionNewPiece('g', 1, new Knight(board, Color.White));
+        PositionNewPiece('h', 1, new Tower(board, Color.White));
+        PositionNewPiece('a', 2, new Pawn(board, Color.White));
+        PositionNewPiece('b', 2, new Pawn(board, Color.White));
+        PositionNewPiece('c', 2, new Pawn(board, Color.White));
+        PositionNewPiece('d', 2, new Pawn(board, Color.White));
+        PositionNewPiece('e', 2, new Pawn(board, Color.White));
+        PositionNewPiece('f', 2, new Pawn(board, Color.White));
+        PositionNewPiece('g', 2, new Pawn(board, Color.White));
+        PositionNewPiece('h', 2, new Pawn(board, Color.White));
+        
+        PositionNewPiece('a', 8, new Tower(board, Color.Black));
+        PositionNewPiece('b', 8, new Knight(board, Color.Black));
+        PositionNewPiece('c', 8, new Bishop(board, Color.Black));
+        PositionNewPiece('d', 8, new Queen(board, Color.Black));
+        PositionNewPiece('e', 8, new King(board, Color.Black));
+        PositionNewPiece('f', 8, new Bishop(board, Color.Black));
+        PositionNewPiece('g', 8, new Knight(board, Color.Black));
+        PositionNewPiece('h', 8, new Tower(board, Color.Black));
+        PositionNewPiece('a', 7, new Pawn(board, Color.Black));
+        PositionNewPiece('b', 7, new Pawn(board, Color.Black));
+        PositionNewPiece('c', 7, new Pawn(board, Color.Black));
+        PositionNewPiece('d', 7, new Pawn(board, Color.Black));
+        PositionNewPiece('e', 7, new Pawn(board, Color.Black));
+        PositionNewPiece('f', 7, new Pawn(board, Color.Black));
+        PositionNewPiece('g', 7, new Pawn(board, Color.Black));
+        PositionNewPiece('h', 7, new Pawn(board, Color.Black));
     }
 
     public HashSet<Piece> GetCapturedPieces(Color color)
