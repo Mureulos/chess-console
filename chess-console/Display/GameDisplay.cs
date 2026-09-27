@@ -10,8 +10,9 @@ public class GameDisplay
     private const ConsoleColor PossibleMoveColor = ConsoleColor.DarkCyan;
     private const ConsoleColor WhitePieceColor = ConsoleColor.DarkRed;
     private const ConsoleColor BlackPieceColor = ConsoleColor.Black;
+    private const ConsoleColor SelectedPieceColor = ConsoleColor.Magenta;
     
-    public void DisplayBoard(Board board, bool[,] possibleMoves = null)
+    public void DisplayBoard(Board board, bool[,] possibleMoves = null, Position selectedPosition = null)
     {
         ConsoleColor originalBackground = Console.BackgroundColor;
         ConsoleColor originalForeground = Console.ForegroundColor;
@@ -20,7 +21,7 @@ public class GameDisplay
 
         for (int i = 0; i < board.rows; i++)
         {
-            PrintBoardRow(board, i, possibleMoves, originalBackground, originalForeground);
+            PrintBoardRow(board, i, possibleMoves, selectedPosition, originalBackground, originalForeground);
         }
 
         PrintBoardFooter();
@@ -35,8 +36,13 @@ public class GameDisplay
         Console.WriteLine("   ────────────────────────");
     }
 
-    private void PrintBoardRow(Board board, int row, bool[,] possibleMoves,
-                               ConsoleColor bgOrig, ConsoleColor fgOrig)
+    private void PrintBoardRow(
+        Board board, 
+        int row, 
+        bool[,] possibleMoves,
+        Position selectedPosition,
+        ConsoleColor bgOrig, 
+        ConsoleColor fgOrig)
     {
         Console.BackgroundColor = bgOrig;
         Console.ForegroundColor = fgOrig;
@@ -44,7 +50,13 @@ public class GameDisplay
 
         for (int col = 0; col < board.columns; col++)
         {
-            if (possibleMoves != null && possibleMoves[row, col])
+            bool isSelectedPiece = selectedPosition != null
+                                   && selectedPosition.row == row
+                                   && selectedPosition.column == col;
+
+            if (isSelectedPiece)
+                Console.BackgroundColor = SelectedPieceColor;
+            else if (possibleMoves != null && possibleMoves[row, col])
                 Console.BackgroundColor = PossibleMoveColor;
             else
                 Console.BackgroundColor = (row + col) % 2 == 0
@@ -141,19 +153,19 @@ public class GameDisplay
         Console.WriteLine();
     }
 
-    public void DisplayFullGame(ChessMatch match, bool[,] possibleMoves = null)
+    public void DisplayFullGame(ChessMatch match, bool[,] possibleMoves = null, Position selectedPosition = null)
     {
         Console.Clear();
         DisplayGameStatus(match);
-        DisplayBoard(match.board, possibleMoves);
+        DisplayBoard(match.board, possibleMoves, selectedPosition);
         DisplayCapturedPieces(match);
     }
 
-    public void DisplayFullGameWithHistory(ChessMatch match, List<string> moves, bool[,] possibleMoves = null)
+    public void DisplayFullGameWithHistory(ChessMatch match, List<string> moves, bool[,] possibleMoves = null, Position selectedPosition = null)
     {
         Console.Clear();
         DisplayGameStatus(match);
-        DisplayBoard(match.board, possibleMoves);
+        DisplayBoard(match.board, possibleMoves, selectedPosition);
         DisplayCapturedPieces(match);
         DisplayGameHistory(moves);
     }

@@ -23,7 +23,7 @@ internal class Program
                 chessMatch.ValideOriginPosition(origin);
                 bool[,] possibleMoves = chessMatch.board.piece(origin).PossibleMoves();
                 
-                display.DisplayFullGame(chessMatch, possibleMoves);
+                display.DisplayFullGame(chessMatch, possibleMoves, origin);
                 
                 Console.Write("Target: ");
                 Position target = Screen.ReadChessPosition().ToPosition();
