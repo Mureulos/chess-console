@@ -1,0 +1,277 @@
+/* O GameDisplay pinta com ConsoleColor, que não existe na web. Aqui só a *lógica*
+   é reaproveitada: paridade da casa, casa selecionada e casas possíveis. */
+:root {
+    --bg: #15171c;
+    --surface: #1d2027;
+    --border: #2d313b;
+    --text: #e6e8ec;
+    --muted: #949aa6;
+
+    --square-light: #e8d9b8;
+    --square-dark: #9a7b55;
+    --square-selected: #d8a657;
+    --square-target: #6fa88a;
+    --square-last: #c7b46a;
+
+    --piece-white: #fbfbf8;
+    --piece-black: #1b1b1b;
+
+    --danger: #e4736b;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 "Segoe UI", system-ui, sans-serif;
+}
+
+.app {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 24px 20px 48px;
+}
+
+.app__header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.app__header h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.status {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.status[data-state="connected"] {
+    color: var(--square-target);
+}
+
+.status[data-state="disconnected"] {
+    color: var(--danger);
+}
+
+/* ---- Lobby ---- */
+.lobby {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 24px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.lobby__join label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.lobby__row {
+    display: flex;
+    gap: 8px;
+}
+
+input {
+    min-width: 290px;
+    padding: 9px 12px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font: inherit;
+    font-family: ui-monospace, "Cascadia Mono", monospace;
+    font-size: 13px;
+}
+
+button {
+    padding: 9px 16px;
+    background: var(--square-dark);
+    color: #fff;
+    border: 0;
+    border-radius: 6px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+button:hover {
+    filter: brightness(1.1);
+}
+
+button:disabled {
+    opacity: .5;
+    cursor: default;
+    filter: none;
+}
+
+/* ---- Jogo ---- */
+.game {
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) 260px;
+    gap: 28px;
+    align-items: start;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    aspect-ratio: 1;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.square {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    font-size: clamp(22px, 5.2vw, 42px);
+    line-height: 1;
+    cursor: default;
+    background: var(--square-dark);
+}
+
+.square:hover {
+    filter: none;
+}
+
+.square--light {
+    background: var(--square-light);
+}
+
+/* Mesma decisão de pintura do GameDisplay, em outra mídia. */
+.square--last {
+    background: var(--square-last);
+}
+
+.square--target {
+    background: var(--square-target);
+}
+
+.square--selected {
+    background: var(--square-selected);
+}
+
+.square--playable {
+    cursor: pointer;
+}
+
+.square__piece--white {
+    color: var(--piece-white);
+    text-shadow: 0 1px 1px rgba(0, 0, 0, .55);
+}
+
+.square__piece--black {
+    color: var(--piece-black);
+    text-shadow: 0 1px 1px rgba(255, 255, 255, .25);
+}
+
+.files {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+}
+
+/* ---- Painel ---- */
+.panel {
+    padding: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.panel__facts {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px 12px;
+    margin: 0 0 16px;
+    font-size: 13px;
+}
+
+.panel__facts dt {
+    color: var(--muted);
+}
+
+.panel__facts dd {
+    margin: 0;
+    font-weight: 600;
+}
+
+.panel__facts code {
+    font-size: 11px;
+    word-break: break-all;
+    font-weight: 400;
+}
+
+.panel__state {
+    margin: 0 0 16px;
+    min-height: 1.5em;
+    font-weight: 600;
+    color: var(--square-selected);
+}
+
+.captured h2 {
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.captured__row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 4px;
+    font-size: 20px;
+    line-height: 1.3;
+}
+
+.captured__row span:first-child {
+    font-size: 13px;
+    line-height: 2;
+    color: var(--muted);
+}
+
+.log {
+    margin: 16px 0 0;
+    min-height: 3em;
+    font-size: 13px;
+    color: var(--danger);
+}
+
+.log[data-kind="info"] {
+    color: var(--muted);
+}
+
+@media (max-width: 760px) {
+    .game {
+        grid-template-columns: 1fr;
+    }
+
+    input {
+        min-width: 0;
+        width: 100%;
+    }
+}
