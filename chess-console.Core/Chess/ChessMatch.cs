@@ -79,7 +79,13 @@ public class ChessMatch
         
         if (caughtPiece != null)
         {
-            board.PutPiece(caughtPiece, target);
+            // No en passant a peça capturada não estava em target, e sim na casa ao
+            // lado da origem — devolvê-la a target deixaria o tabuleiro errado.
+            Position captureSquare = WasEnPassant(piece, origin, target, caughtPiece)
+                ? new Position(origin.row, target.column)
+                : target;
+
+            board.PutPiece(caughtPiece, captureSquare);
             _capturedPieces.Remove(caughtPiece);
         }
 
@@ -100,26 +106,18 @@ public class ChessMatch
             board.PutPiece(rook, rookOrigin);
         }
 
-        if (piece is Pawn && origin.column != target.column && caughtPiece != board.piece(target))
-        {
-            Piece pawn;
-            Position pawnPosition;
-            if (piece.color == Color.White)
-            {
-                pawnPosition = new Position(3, target.column);
-                pawn = board.RemovePiece(pawnPosition);
-            }
-            else
-            {
-                pawnPosition = new Position(4, target.column);
-                pawn = board.RemovePiece(pawnPosition);
-            }
-            
-            board.PutPiece(pawn, pawnPosition);
-            _capturedPieces.Remove(pawn);
-        }
-
         board.PutPiece(piece, origin);
+    }
+
+    // O lance foi en passant se um peão andou na diagonal a partir da linha de en
+    // passant e levou justamente o peão que acabara de avançar duas casas. Dessa linha
+    // o peão nunca captura o vulnerável de forma normal, então não há ambiguidade.
+    private bool WasEnPassant(Piece piece, Position origin, Position target, Piece caughtPiece)
+    {
+        return piece is Pawn
+               && origin.column != target.column
+               && caughtPiece == vulnerableEnPassant
+               && origin.row == (piece.color == Color.White ? 3 : 4);
     }
 
     public void MakeMove(Position origin, Position target)

@@ -273,6 +273,22 @@ public class ChessMatchTests
         Assert.Equal("Invalid target position", ErrorOf(() => Play(match, "e4d5")));
     }
 
+    // O peão de e5 está cravado pela dama preta em e7: sair da coluna e expõe o rei
+    // branco, então o MakeMove desfaz. O peão capturado tem que voltar para f5 — não
+    // para f6, que é a casa onde o capturador passou.
+    [Fact]
+    public void MakeMove_PutsTheEnPassantPawnBackOnItsOwnSquareWhenTheMoveIsUndone()
+    {
+        ChessMatch match = Match("e2e4", "e7e5", "d2d4", "e5d4", "e4e5", "d8e7", "a2a3", "f7f5");
+
+        Assert.Equal("You can't put yourself in check", ErrorOf(() => Play(match, "e5f6")));
+
+        Assert.Equal(Color.White, PieceAt(match, "e5")!.color);
+        Assert.Equal(Color.Black, PieceAt(match, "f5")!.color);
+        Assert.Null(PieceAt(match, "f6"));
+        Assert.Empty(match.GetCapturedPieces(Color.Black));
+    }
+
     // ---- Promoção ----
 
     [Fact]
