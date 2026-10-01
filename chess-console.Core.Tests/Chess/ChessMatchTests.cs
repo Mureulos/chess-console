@@ -81,6 +81,19 @@ public class ChessMatchTests
         Assert.False(match.completed);
     }
 
+    // Ataque não é a mesma coisa que lance possível: o peão anda em frente mas ataca na
+    // diagonal, e a casa vazia ao lado dele continua atacada.
+    [Fact]
+    public void IsUnderAttack_AnswersForEmptySquaresToo()
+    {
+        ChessMatch match = new();
+
+        Assert.True(match.IsUnderAttack(Square("e3"), Color.White));
+        Assert.True(match.IsUnderAttack(Square("f3"), Color.White));
+        Assert.False(match.IsUnderAttack(Square("e4"), Color.White));
+        Assert.False(match.IsUnderAttack(Square("e3"), Color.Black));
+    }
+
     [Fact]
     public void MakeMove_RefusesAMoveThatLeavesYourOwnKingInCheck()
     {
@@ -184,6 +197,21 @@ public class ChessMatchTests
         ChessMatch match = Match(
             "e2e4", "e7e5", "g1f3", "b8c6", "f1c4", "g8f6",
             "h1g1", "f8c5", "g1h1", "d8e7");
+
+        Assert.False(CanReach(match, "e1", "g1"));
+    }
+
+    // O bispo preto em a6 mira f1 pela diagonal a6-f1, que ficou livre. O rei não está
+    // em xeque e f1/g1 estão vazias, mas ele atravessaria casa atacada.
+    [Fact]
+    public void PossibleMoves_DoesNotOfferCastlingThroughAnAttackedSquare()
+    {
+        ChessMatch match = Match("e2e4", "b7b6", "g2g3", "c8a6", "f1g2", "g8f6", "g1f3", "e7e6");
+
+        Assert.False(match.check);
+        Assert.Null(PieceAt(match, "f1"));
+        Assert.Null(PieceAt(match, "g1"));
+        Assert.True(match.IsUnderAttack(Square("f1"), Color.Black));
 
         Assert.False(CanReach(match, "e1", "g1"));
     }

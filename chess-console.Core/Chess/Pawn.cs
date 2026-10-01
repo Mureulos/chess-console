@@ -24,9 +24,32 @@ public class Pawn : Piece
 
     private bool Free(Position position)
     {
-        return board.piece(position) == null;       
+        return board.piece(position) == null;
     }
-    
+
+    // As duas diagonais, ocupadas ou não. PossibleMoves() só marca a diagonal quando
+    // há inimigo nela, mas a casa vazia ao lado continua atacada — é o que decide se
+    // o rei pode atravessá-la no roque.
+    public override bool[,] AttackedSquares()
+    {
+        bool[,] matrix = new bool[board.rows, board.columns];
+        int forward = color == Color.White ? -1 : 1;
+
+        Position left = new Position(this.position.row + forward, this.position.column - 1);
+        if (board.IsPositionValid(left))
+        {
+            matrix[left.row, left.column] = true;
+        }
+
+        Position right = new Position(this.position.row + forward, this.position.column + 1);
+        if (board.IsPositionValid(right))
+        {
+            matrix[right.row, right.column] = true;
+        }
+
+        return matrix;
+    }
+
     public override bool[,] PossibleMoves()
     {
         bool[,] matrix = new bool[board.rows, board.columns];

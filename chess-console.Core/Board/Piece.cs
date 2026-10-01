@@ -49,5 +49,13 @@ public abstract class Piece
         return PossibleMoves()[position.row, position.column];
     }
 
+    // Casas que a peça ataca — nem sempre igual aos lances que ela pode fazer. O peão
+    // ataca na diagonal mas anda em frente, e o roque do rei não ataca nada (e, se
+    // entrasse aqui, perguntar "esta casa está atacada?" recursaria entre os dois reis).
+    public virtual bool[,] AttackedSquares()
+    {
+        return PossibleMoves();
+    }
+
     public abstract bool[,] PossibleMoves();
 }

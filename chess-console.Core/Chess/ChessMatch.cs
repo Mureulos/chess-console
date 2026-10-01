@@ -292,16 +292,21 @@ public class ChessMatch
         if (king == null)
             throw new BoardException("There is no king of this color on the board");
 
-        foreach (var piece in GetPiecesInGame(Opponent(color)))
-        {
-            bool[,] matrix = piece.PossibleMoves();
+        return IsUnderAttack(king.position, Opponent(color));
+    }
 
-            if (matrix[king.position.row, king.position.column])
+    // Vale para casa vazia também, que é o caso do roque: o rei não pode atravessar
+    // uma casa atacada mesmo sem ninguém nela.
+    public bool IsUnderAttack(Position position, Color byColor)
+    {
+        foreach (var piece in GetPiecesInGame(byColor))
+        {
+            if (piece.AttackedSquares()[position.row, position.column])
             {
                 return true;
             }
         }
-        
+
         return false;
     }
 
