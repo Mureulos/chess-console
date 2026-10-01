@@ -1,34 +1,63 @@
-# Common IntelliJ Platform excludes
-
-# User specific
-**/.idea/**/workspace.xml
-**/.idea/**/tasks.xml
-**/.idea/shelf/*
-**/.idea/dictionaries
-**/.idea/httpRequests/
-
-# Sensitive or high-churn files
-**/.idea/**/dataSources/
-**/.idea/**/dataSources.ids
-**/.idea/**/dataSources.xml
-**/.idea/**/dataSources.local.xml
-**/.idea/**/sqlDataSources.xml
-**/.idea/**/dynamic.xml
-
-# Rider
-# Rider auto-generates .iml files, and contentModel.xml
-**/.idea/**/*.iml
-**/.idea/**/contentModel.xml
-**/.idea/**/modules.xml
-
-*.suo
-*.user
-.vs/
+# ---- Saída de build ----
 [Bb]in/
 [Oo]bj/
+[Oo]ut/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+artifacts/
 _UpgradeReport_Files/
-[Pp]ackages/
 
+# ---- Testes e cobertura ----
+[Tt]est[Rr]esult*/
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+coverage*.info
+BenchmarkDotNet.Artifacts/
+
+# ---- NuGet ----
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+project.lock.json
+project.fragment.lock.json
+
+# ---- IDEs e editores ----
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.userprefs
+*.sln.docstates
+
+# Rider / IntelliJ (config de máquina, não de projeto)
+.idea/
+*.iml
+*.sln.iml
+
+# VS Code
+.vscode/
+!.vscode/extensions.json
+
+# ---- Sistema operacional ----
 Thumbs.db
+ehthumbs.db
 Desktop.ini
+$RECYCLE.BIN/
 .DS_Store
+
+# ---- Logs ----
+*.log
+msbuild.log
+msbuild.err
+msbuild.wrn
