@@ -102,9 +102,11 @@ public class Pawn : Piece
             if (this.position.row == 4)
             {
                 Position left = new Position(this.position.row, this.position.column - 1);
-                
+
+                // O preto anda para baixo (row cresce): o destino é row + 1, igual ao
+                // lado direito logo abaixo.
                 if (board.IsPositionValid(left) && ExistEnemie(left) && board.piece(left) == _chessMatch.vulnerableEnPassant)
-                    matrix[left.row - 1, left.column] = true;
+                    matrix[left.row + 1, left.column] = true;
                 
                 Position right  = new Position(this.position.row, this.position.column + 1);
                 

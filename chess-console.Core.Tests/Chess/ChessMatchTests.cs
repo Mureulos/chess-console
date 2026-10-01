@@ -226,6 +226,25 @@ public class ChessMatchTests
         AssertEnPassant(match, landedOn: "f3", captureCameFrom: "f4", capturedColor: Color.White);
     }
 
+    [Fact]
+    public void MakeMove_CapturesEnPassantToTheLeftAsBlack()
+    {
+        ChessMatch match = Match("a2a3", "e7e5", "a3a4", "e5e4", "d2d4", "e4d3");
+
+        AssertEnPassant(match, landedOn: "d3", captureCameFrom: "d4", capturedColor: Color.White);
+    }
+
+    // A casa marcada errada era a de trás do peão, e jogá-la fazia o ramo de en passant
+    // rodar sobre casa vazia e empilhar null em _capturedPieces.
+    [Fact]
+    public void PossibleMoves_NeverLetsAPawnMoveBackwards()
+    {
+        ChessMatch match = Match("a2a3", "e7e5", "a3a4", "e5e4", "d2d4");
+
+        Assert.False(CanReach(match, "e4", "d5"));
+        Assert.Equal("Invalid target position", ErrorOf(() => Play(match, "e4d5")));
+    }
+
     // ---- Promoção ----
 
     [Fact]
@@ -239,6 +258,15 @@ public class ChessMatchTests
         Assert.IsType<Queen>(promoted);
         Assert.Equal(Color.White, promoted!.color);
         Assert.Contains(promoted, match.GetPiecesInGame(Color.White));
+    }
+
+    [Fact]
+    public void MakeMove_DoesNotPromoteAPieceThatIsNotAPawn()
+    {
+        ChessMatch match = Match(
+            "a2a4", "b7b5", "a4b5", "a7a6", "b5a6", "a8a6", "a1a6", "h7h6", "a6a8");
+
+        Assert.IsType<Tower>(PieceAt(match, "a8"));
     }
 
     // ---- Auxiliares ----

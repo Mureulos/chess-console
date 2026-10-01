@@ -134,7 +134,9 @@ public class ChessMatch
         
         Piece piece = board.piece(target);
 
-        if (piece is Piece)
+        // Só peão promove: "piece is Piece" era sempre verdadeiro e transformava em
+        // dama qualquer peça que chegasse à última linha — inclusive o rei.
+        if (piece is Pawn)
         {
             if ((piece.color == Color.White && target.row == 0) || (piece.color == Color.Black && target.row == 7))
             {
