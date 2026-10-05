@@ -1,21 +1,17 @@
-/* O GameDisplay pinta com ConsoleColor, que não existe na web. Aqui só a *lógica*
-   é reaproveitada: paridade da casa, casa selecionada e casas possíveis. */
 :root {
     --bg: #15171c;
     --surface: #1d2027;
     --border: #2d313b;
     --text: #e6e8ec;
     --muted: #949aa6;
-
     --square-light: #e8d9b8;
     --square-dark: #9a7b55;
     --square-selected: #d8a657;
     --square-target: #6fa88a;
     --square-last: #c7b46a;
-
+    --square-capture: #d81b60;
     --piece-white: #fbfbf8;
     --piece-black: #1b1b1b;
-
     --danger: #e4736b;
 }
 
@@ -30,24 +26,26 @@ body {
     font: 15px/1.5 "Segoe UI", system-ui, sans-serif;
 }
 
+/* ===== Layout ===== */
+
 .app {
     max-width: 980px;
     margin: 0 auto;
-    padding: 24px 20px 48px;
+    padding: 40px 20px 20px;
 }
 
 .app__header {
     display: flex;
     align-items: baseline;
     gap: 16px;
-    margin-bottom: 24px;
+    margin-bottom: 40px;
 }
 
-.app__header h1 {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 600;
-}
+    .app__header h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+    }
 
 .status {
     margin: 0;
@@ -55,15 +53,16 @@ body {
     color: var(--muted);
 }
 
-.status[data-state="connected"] {
-    color: var(--square-target);
-}
+    .status[data-state="connected"] {
+        color: var(--square-target);
+    }
 
-.status[data-state="disconnected"] {
-    color: var(--danger);
-}
+    .status[data-state="disconnected"] {
+        color: var(--danger);
+    }
 
-/* ---- Lobby ---- */
+/* ===== Lobby ===== */
+
 .lobby {
     display: flex;
     flex-wrap: wrap;
@@ -73,6 +72,7 @@ body {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
+    margin-bottom: 40px;
 }
 
 .lobby__join label {
@@ -87,6 +87,8 @@ body {
     gap: 8px;
 }
 
+/* ===== Controles ===== */
+
 input {
     min-width: 290px;
     padding: 9px 12px;
@@ -94,9 +96,7 @@ input {
     color: var(--text);
     border: 1px solid var(--border);
     border-radius: 6px;
-    font: inherit;
-    font-family: ui-monospace, "Cascadia Mono", monospace;
-    font-size: 13px;
+    font: 13px ui-monospace, "Cascadia Mono", monospace;
 }
 
 button {
@@ -108,19 +108,32 @@ button {
     font: inherit;
     font-weight: 600;
     cursor: pointer;
+    transition: filter 0.2s ease, background-color 0.2s ease;
 }
 
-button:hover {
-    filter: brightness(1.1);
+    button:hover {
+        filter: brightness(1.1);
+    }
+
+    button:disabled {
+        opacity: .5;
+        cursor: default;
+        filter: none;
+    }
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
 }
 
-button:disabled {
-    opacity: .5;
-    cursor: default;
-    filter: none;
-}
+    .btn-secondary:hover {
+        background: var(--border);
+        filter: none;
+    }
 
-/* ---- Jogo ---- */
+/* ===== Jogo ===== */
+
 .game {
     display: grid;
     grid-template-columns: minmax(320px, 1fr) 260px;
@@ -128,61 +141,22 @@ button:disabled {
     align-items: start;
 }
 
+.board-area {
+    --zoom: 1;
+    width: calc(460px * var(--zoom));
+    max-width: 100%;
+    transition: width 0.2s ease;
+}
+
 .board {
+    container-type: inline-size; /* permite usar cqi nas casas */
     display: grid;
     grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
     aspect-ratio: 1;
     border: 1px solid var(--border);
     border-radius: 6px;
     overflow: hidden;
-}
-
-.square {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    font-size: clamp(22px, 5.2vw, 42px);
-    line-height: 1;
-    cursor: default;
-    background: var(--square-dark);
-}
-
-.square:hover {
-    filter: none;
-}
-
-.square--light {
-    background: var(--square-light);
-}
-
-/* Mesma decisão de pintura do GameDisplay, em outra mídia. */
-.square--last {
-    background: var(--square-last);
-}
-
-.square--target {
-    background: var(--square-target);
-}
-
-.square--selected {
-    background: var(--square-selected);
-}
-
-.square--playable {
-    cursor: pointer;
-}
-
-.square__piece--white {
-    color: var(--piece-white);
-    text-shadow: 0 1px 1px rgba(0, 0, 0, .55);
-}
-
-.square__piece--black {
-    color: var(--piece-black);
-    text-shadow: 0 1px 1px rgba(255, 255, 255, .25);
 }
 
 .files {
@@ -194,42 +168,151 @@ button:disabled {
     text-align: center;
 }
 
-/* ---- Painel ---- */
+/* ===== Zoom ===== */
+
+.zoom {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+    .zoom button {
+        width: 36px;
+        padding: 4px 0;
+        font-size: 18px;
+    }
+
+    .zoom span {
+        min-width: 48px;
+        text-align: center;
+        font-size: 13px;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+    }
+
+/* ===== Casas (a ordem define a prioridade das cores) ===== */
+
+.square {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border-radius: 0;
+    font-size: 6.5cqi; /* peça acompanha o tamanho do tabuleiro */
+    line-height: 1;
+    cursor: default;
+    background: var(--square-dark);
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+    .square:hover {
+        filter: none;
+    }
+
+.square--light {
+    background: var(--square-light);
+}
+
+.square--last {
+    background: var(--square-last);
+}
+
+.square--target {
+    background: var(--square-target);
+    box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.15);
+}
+
+.square--capture {
+    background: var(--square-capture);
+}
+
+.square--selected {
+    background: var(--square-selected);
+}
+
+.square--playable {
+    cursor: pointer;
+}
+
+    .square--playable:hover {
+        filter: brightness(1.1);
+        transform: scale(1.02);
+    }
+
+/* ===== Peças ===== */
+
+.piece--white {
+    color: var(--piece-white);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.piece--black {
+    color: var(--piece-black);
+    text-shadow: 0 1px 3px rgba(255, 255, 255, 0.4);
+}
+
+/* ===== Painel lateral ===== */
+
 .panel {
-    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px;
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 10px;
 }
 
+.panel__facts, .panel__state, .log {
+    margin: 0;
+}
+
 .panel__facts {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 6px 12px;
-    margin: 0 0 16px;
+    gap: 12px 16px;
     font-size: 13px;
 }
 
-.panel__facts dt {
-    color: var(--muted);
-}
+    .panel__facts dt {
+        color: var(--muted);
+    }
 
-.panel__facts dd {
-    margin: 0;
-    font-weight: 600;
-}
+    .panel__facts dd {
+        margin: 0;
+        font-weight: 600;
+    }
 
-.panel__facts code {
-    font-size: 11px;
-    word-break: break-all;
-    font-weight: 400;
-}
+    .panel__facts code {
+        font-size: 11px;
+        font-weight: 400;
+        word-break: break-all;
+    }
 
 .panel__state {
-    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
     min-height: 1.5em;
     font-weight: 600;
     color: var(--square-selected);
+}
+
+.spinner {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--muted);
+    border-top-color: var(--square-selected);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .captured h2 {
@@ -248,22 +331,23 @@ button:disabled {
     line-height: 1.3;
 }
 
-.captured__row span:first-child {
-    font-size: 13px;
-    line-height: 2;
-    color: var(--muted);
-}
+    .captured__row span:first-child {
+        font-size: 13px;
+        line-height: 2;
+        color: var(--muted);
+    }
 
 .log {
-    margin: 16px 0 0;
     min-height: 3em;
     font-size: 13px;
     color: var(--danger);
 }
 
-.log[data-kind="info"] {
-    color: var(--muted);
-}
+    .log[data-kind="info"] {
+        color: var(--muted);
+    }
+
+/* ===== Responsivo ===== */
 
 @media (max-width: 760px) {
     .game {

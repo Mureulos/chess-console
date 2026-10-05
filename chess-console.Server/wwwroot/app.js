@@ -1,34 +1,51 @@
 'use strict';
 
+// =====================================================
+// Constantes
+// =====================================================
+
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
-// O ToString() das peças no Core devolve o glifo preto para as duas cores, porque lá
-// quem separa branco de preto é o ConsoleColor. Na web dá para usar os dois jogos.
-const GLYPHS = {
-    White: { King: '♔', Queen: '♕', Rook: '♖', Bishop: '♗', Knight: '♘', Pawn: '♙' },
-    Black: { King: '♚', Queen: '♛', Rook: '♜', Bishop: '♝', Knight: '♞', Pawn: '♟' }
-};
+// Mesmo glifo para as duas cores; a cor vem do CSS (.piece--white / .piece--black)
+const GLYPHS = { King: '♚', Queen: '♛', Rook: '♜', Bishop: '♝', Knight: '♞', Pawn: '♟' };
 
-const COLOR_LABEL = { White: 'brancas', Black: 'pretas' };
+// Limites da escala do tabuleiro (1 = 100%)
+const ZOOM = { min: 0.6, max: 1.4, step: 0.1 };
+
+// =====================================================
+// Referências do DOM
+// =====================================================
+
+const $ = id => document.getElementById(id);
 
 const ui = {
-    connection: document.getElementById('connection'),
-    lobby: document.getElementById('lobby'),
-    game: document.getElementById('game'),
-    create: document.getElementById('create'),
-    joinForm: document.getElementById('join-form'),
-    matchIdInput: document.getElementById('match-id'),
-    board: document.getElementById('board'),
-    files: document.getElementById('files'),
-    matchLabel: document.getElementById('match-label'),
-    myColor: document.getElementById('my-color'),
-    turn: document.getElementById('turn'),
-    currentPlayer: document.getElementById('current-player'),
-    gameState: document.getElementById('game-state'),
-    capturedWhite: document.getElementById('captured-white'),
-    capturedBlack: document.getElementById('captured-black'),
-    log: document.getElementById('log')
+    connection: $('connection'),
+    lobby: $('lobby'),
+    game: $('game'),
+    create: $('create'),
+    joinForm: $('join-form'),
+    joinButton: document.querySelector('#join-form button'),
+    matchIdInput: $('match-id'),
+    boardArea: $('board-area'),
+    board: $('board'),
+    files: $('files'),
+    matchLabel: $('match-label'),
+    myColor: $('my-color'),
+    turn: $('turn'),
+    currentPlayer: $('current-player'),
+    gameState: $('game-state'),
+    capturedWhite: $('captured-white'),
+    capturedBlack: $('captured-black'),
+    shareLink: $('share-link'),
+    zoomIn: $('zoom-in'),
+    zoomOut: $('zoom-out'),
+    zoomLevel: $('zoom-level'),
+    log: $('log')
 };
+
+// =====================================================
+// Estado da partida
+// =====================================================
 
 const state = {
     matchId: null,
@@ -37,245 +54,27 @@ const state = {
     selected: null,
     targets: [],
     lastMove: null,
-    opponentPresent: false
+    opponentPresent: false,
+    zoom: 1
 };
 
-const connection = new signalR.HubConnectionBuilder()
-    .withUrl('/hubs/chess')
-    .withAutomaticReconnect()
-    .build();
+// =====================================================
+// Funções auxiliares
+// =====================================================
 
-// ---- Eventos do Hub ----
-
-connection.on('ReceiveBoardState', result => {
-    state.board = result.state;
-    state.lastMove = { origin: result.origin, target: result.target };
-    clearSelection();
-    render();
-});
-
-// Único canal de erro: os métodos do Hub resolvem com null e a mensagem chega aqui.
-connection.on('ReceiveError', message => {
-    clearSelection();
-    say(message, 'error');
-    render();
-});
-
-connection.on('OpponentJoined', color => {
-    state.opponentPresent = true;
-    say(`Adversário entrou com as ${COLOR_LABEL[color] ?? color}.`);
-    render();
-});
-
-connection.on('OpponentLeft', () => {
-    state.opponentPresent = false;
-    say('O adversário saiu da partida.');
-    render();
-});
-
-connection.onreconnecting(() => setConnectionState('connecting', 'reconectando…'));
-connection.onclose(() => setConnectionState('disconnected', 'desconectado'));
-
-// Reconectar gera um connectionId novo, e a cadeira está amarrada ao antigo — o
-// servidor já liberou a cor no OnDisconnectedAsync, então é preciso entrar de novo.
-connection.onreconnected(async () => {
-    setConnectionState('connected', 'conectado');
-
-    if (state.matchId) {
-        await enterMatch('JoinMatch', state.matchId);
-    }
-});
-
-// ---- Ações ----
-
-ui.create.addEventListener('click', () => enterMatch('CreateMatch'));
-
-ui.joinForm.addEventListener('submit', event => {
-    event.preventDefault();
-
-    const matchId = ui.matchIdInput.value.trim();
-
-    if (matchId) {
-        enterMatch('JoinMatch', matchId);
-    }
-});
-
-async function enterMatch(method, matchId) {
-    const joining = method === 'JoinMatch';
-    const match = joining
-        ? await connection.invoke(method, matchId)
-        : await connection.invoke(method);
-
-    if (!match) {
-        return; // o motivo chegou por ReceiveError
-    }
-
-    state.matchId = match.matchId;
-    state.myColor = match.color;
-    state.board = match.state;
-    state.opponentPresent = joining;
-    state.lastMove = null;
-    clearSelection();
-
-    location.hash = match.matchId;
-    ui.lobby.hidden = true;
-    ui.game.hidden = false;
-
-    say(joining
-        ? `Você joga com as ${COLOR_LABEL[match.color]}.`
-        : `Partida criada. Compartilhe o link ou o id para o adversário entrar.`);
-
-    render();
-}
-
-async function onSquareClick(square) {
-    if (!isMyTurn()) {
-        return;
-    }
-
-    if (state.targets.includes(square)) {
-        const origin = state.selected;
-        clearSelection();
-        render();
-        await connection.invoke('MakeMove', state.matchId, origin, square);
-        return;
-    }
-
-    const piece = pieceAt(square);
-
-    if (piece && piece.color === state.myColor) {
-        const moves = await connection.invoke('GetPossibleMoves', state.matchId, square);
-
-        if (moves) {
-            state.selected = moves.origin;
-            state.targets = moves.targets;
-            say('');
-        }
-    } else {
-        clearSelection();
-    }
-
-    render();
-}
-
-// ---- Render ----
-
-function render() {
-    if (!state.board) {
-        return;
-    }
-
-    renderBoard();
-    renderPanel();
-}
-
-function renderBoard() {
-    const ranks = state.myColor === 'Black' ? [1, 2, 3, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 3, 2, 1];
-    const files = state.myColor === 'Black' ? [...FILES].reverse() : FILES;
-
-    ui.board.replaceChildren(...ranks.flatMap(rank => files.map(file => buildSquare(file, rank))));
-    ui.files.replaceChildren(...files.map(file => {
-        const label = document.createElement('span');
-        label.textContent = file;
-        return label;
-    }));
-}
-
-function buildSquare(file, rank) {
-    const square = file + rank;
-    const piece = pieceAt(square);
-    const element = document.createElement('button');
-
-    element.type = 'button';
-    element.className = 'square';
-    element.dataset.square = square;
-    element.setAttribute('aria-label', square);
-
-    // Mesma decisão do GameDisplay: selecionada > possível > paridade da casa.
-    if (isLightSquare(file, rank)) {
-        element.classList.add('square--light');
-    }
-
-    if (state.lastMove && (state.lastMove.origin === square || state.lastMove.target === square)) {
-        element.classList.add('square--last');
-    }
-
-    if (state.targets.includes(square)) {
-        element.classList.add('square--target');
-    }
-
-    if (state.selected === square) {
-        element.classList.add('square--selected');
-    }
-
-    if (piece) {
-        element.textContent = glyphOf(piece);
-        element.classList.add(`square__piece--${piece.color.toLowerCase()}`);
-    }
-
-    const playable = isMyTurn() && (state.targets.includes(square) || (piece && piece.color === state.myColor));
-
-    if (playable) {
-        element.classList.add('square--playable');
-        element.addEventListener('click', () => onSquareClick(square));
-    }
-
-    return element;
-}
-
-function renderPanel() {
-    const board = state.board;
-
-    ui.matchLabel.textContent = state.matchId;
-    ui.myColor.textContent = COLOR_LABEL[state.myColor] ?? '—';
-    ui.turn.textContent = board.turn;
-    ui.currentPlayer.textContent = COLOR_LABEL[board.currentPlayer] ?? board.currentPlayer;
-
-    ui.capturedWhite.textContent = board.capturedWhitePieces.map(glyphOf).join('') || '—';
-    ui.capturedBlack.textContent = board.capturedBlackPieces.map(glyphOf).join('') || '—';
-
-    ui.gameState.textContent = describeState(board);
-}
-
-function describeState(board) {
-    if (board.completed) {
-        return board.winner === state.myColor
-            ? `Xeque-mate — você venceu com as ${COLOR_LABEL[board.winner]}.`
-            : `Xeque-mate — vitória das ${COLOR_LABEL[board.winner] ?? board.winner}.`;
-    }
-
-    if (!state.opponentPresent) {
-        return 'Aguardando o adversário entrar…';
-    }
-
-    if (board.check) {
-        return `Xeque nas ${COLOR_LABEL[board.currentPlayer]}.`;
-    }
-
-    return isMyTurn() ? 'Sua vez.' : 'Vez do adversário.';
-}
-
-// ---- Auxiliares ----
-
-function isMyTurn() {
-    return Boolean(state.board)
-        && !state.board.completed
-        && state.opponentPresent
-        && state.board.currentPlayer === state.myColor;
-}
+const glyphOf = piece => GLYPHS[piece.type] ?? '?';
 
 function pieceAt(square) {
     return state.board.pieces.find(piece => piece.position === square) ?? null;
 }
 
-function glyphOf(piece) {
-    return GLYPHS[piece.color]?.[piece.type] ?? '?';
+function isMyTurn() {
+    const board = state.board;
+    return Boolean(board) && !board.completed && state.opponentPresent && board.currentPlayer === state.myColor;
 }
 
-// a8 é casa clara: com row = 8 - rank e col = índice da coluna, (row + col) par é clara,
-// exatamente a conta que o GameDisplay faz para escolher o ConsoleColor de fundo.
 function isLightSquare(file, rank) {
-    return ((8 - rank) + FILES.indexOf(file)) % 2 === 0;
+    return (FILES.indexOf(file) + rank) % 2 === 0;
 }
 
 function clearSelection() {
@@ -289,23 +88,248 @@ function say(message, kind = 'info') {
 }
 
 function setConnectionState(value, label) {
+    const connected = value === 'connected';
     ui.connection.dataset.state = value;
     ui.connection.textContent = label;
-    ui.create.disabled = value !== 'connected';
-    ui.joinForm.querySelector('button').disabled = value !== 'connected';
+    ui.create.disabled = !connected;
+    ui.joinButton.disabled = !connected;
 }
 
-// ---- Start ----
+// =====================================================
+// Renderização
+// =====================================================
 
-setConnectionState('connecting', 'conectando…');
+// Monta as 64 casas uma única vez, invertendo o tabuleiro para as pretas
+function buildBoard() {
+    const flipped = state.myColor === 'Black';
+    const files = flipped ? [...FILES].reverse() : FILES;
+    const ranks = flipped ? [1, 2, 3, 4, 5, 6, 7, 8] : [8, 7, 6, 5, 4, 3, 2, 1];
 
+    ui.board.innerHTML = ranks.flatMap(rank => files.map(file => {
+        const square = file + rank;
+        const light = isLightSquare(file, rank) ? ' square--light' : '';
+        return `<button type="button" class="square${light}" data-square="${square}" aria-label="${square}"></button>`;
+    })).join('');
+
+    ui.files.innerHTML = files.map(file => `<span>${file}</span>`).join('');
+}
+
+// Atualiza peças e destaques de cada casa
+function render() {
+    if (!state.board) return;
+
+    const myTurn = isMyTurn();
+
+    ui.board.querySelectorAll('.square').forEach(btn => {
+        const square = btn.dataset.square;
+        const piece = pieceAt(square);
+        const isMine = piece?.color === state.myColor;
+        const isTarget = state.targets.includes(square);
+        const isCapture = isTarget && Boolean(piece) && !isMine;
+        const isLast = state.lastMove?.origin === square || state.lastMove?.target === square;
+
+        btn.textContent = piece ? glyphOf(piece) : '';
+        btn.classList.toggle('square--last', isLast);
+        btn.classList.toggle('square--target', isTarget && !isCapture);
+        btn.classList.toggle('square--capture', isCapture);
+        btn.classList.toggle('square--selected', state.selected === square);
+        btn.classList.toggle('square--playable', myTurn && (isTarget || isMine));
+        btn.classList.toggle('piece--white', piece?.color === 'White');
+        btn.classList.toggle('piece--black', piece?.color === 'Black');
+    });
+
+    renderPanel();
+}
+
+// Atualiza o painel lateral
+function renderPanel() {
+    const board = state.board;
+    const glyphs = pieces => pieces.map(glyphOf).join('') || '—';
+
+    ui.matchLabel.textContent = state.matchId;
+    ui.myColor.textContent = state.myColor ?? '—';
+    ui.turn.textContent = board.turn;
+    ui.currentPlayer.textContent = board.currentPlayer;
+    ui.capturedWhite.textContent = glyphs(board.capturedWhitePieces);
+    ui.capturedBlack.textContent = glyphs(board.capturedBlackPieces);
+    ui.gameState.innerHTML = describeState(board);
+}
+
+function describeState(board) {
+    if (board.completed) {
+        return board.winner === state.myColor
+            ? `Checkmate — you won as ${board.winner}.`
+            : `Checkmate — victory for ${board.winner}.`;
+    }
+    if (!state.opponentPresent) return '<span class="spinner"></span> Waiting for opponent...';
+    if (board.check) return `Check on ${board.currentPlayer}.`;
+    return isMyTurn() ? 'Your turn.' : "Opponent's turn.";
+}
+
+// =====================================================
+// Zoom do tabuleiro
+// =====================================================
+
+// Limita o valor ao intervalo permitido e repassa para o CSS via --zoom
+function setZoom(value) {
+    const rounded = Math.round(value * 10) / 10;
+    state.zoom = Math.min(ZOOM.max, Math.max(ZOOM.min, rounded));
+
+    ui.boardArea.style.setProperty('--zoom', state.zoom);
+    ui.zoomLevel.textContent = `${Math.round(state.zoom * 100)}%`;
+    ui.zoomOut.disabled = state.zoom <= ZOOM.min;
+    ui.zoomIn.disabled = state.zoom >= ZOOM.max;
+}
+
+// =====================================================
+// Conexão SignalR
+// =====================================================
+
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl('/hubs/chess')
+    .withAutomaticReconnect()
+    .build();
+
+connection.onreconnecting(() => setConnectionState('connecting', 'reconnecting...'));
+connection.onclose(() => setConnectionState('disconnected', 'disconnected'));
+connection.onreconnected(async () => {
+    setConnectionState('connected', 'connected');
+    if (state.matchId) await enterMatch('JoinMatch', state.matchId);
+});
+
+// =====================================================
+// Ações do jogador (chamadas ao servidor)
+// =====================================================
+
+// Cria (sem matchId) ou entra (com matchId) em uma partida
+async function enterMatch(method, matchId) {
+    const joining = method === 'JoinMatch';
+    const args = joining ? [matchId] : [];
+    const match = await connection.invoke(method, ...args);
+    if (!match) return;
+
+    Object.assign(state, {
+        matchId: match.matchId,
+        myColor: match.color,
+        board: match.state,
+        opponentPresent: joining,
+        lastMove: null
+    });
+    clearSelection();
+
+    location.hash = match.matchId;
+    ui.lobby.hidden = true;
+    ui.game.hidden = false;
+
+    buildBoard();
+    render();
+
+    say(joining
+        ? `You play as ${match.color}.`
+        : 'Match created. Share the link or ID for the opponent to join.');
+}
+
+// Clique numa casa: move se for destino, seleciona se for peça própria
+async function onSquareClick(square) {
+    if (!isMyTurn()) return;
+
+    if (state.targets.includes(square)) {
+        const origin = state.selected;
+        clearSelection();
+        render();
+        await connection.invoke('MakeMove', state.matchId, origin, square);
+        return;
+    }
+
+    clearSelection();
+
+    if (pieceAt(square)?.color === state.myColor) {
+        const moves = await connection.invoke('GetPossibleMoves', state.matchId, square);
+        if (moves) {
+            state.selected = moves.origin;
+            state.targets = moves.targets;
+            say('');
+        }
+    }
+
+    render();
+}
+
+// =====================================================
+// Eventos recebidos do servidor
+// =====================================================
+
+connection.on('ReceiveBoardState', result => {
+    state.board = result.state;
+    state.lastMove = { origin: result.origin, target: result.target };
+    clearSelection();
+    render();
+});
+
+connection.on('ReceiveError', message => {
+    clearSelection();
+    say(message, 'error');
+    render();
+});
+
+connection.on('OpponentJoined', color => {
+    state.opponentPresent = true;
+    say(`Opponent joined as ${color}.`);
+    render();
+});
+
+connection.on('OpponentLeft', () => {
+    state.opponentPresent = false;
+    say('Opponent left the match.');
+    render();
+});
+
+// =====================================================
+// Eventos da interface
+// =====================================================
+
+ui.create.addEventListener('click', () => enterMatch('CreateMatch'));
+
+ui.joinForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const matchId = ui.matchIdInput.value.trim();
+    if (matchId) enterMatch('JoinMatch', matchId);
+});
+
+ui.board.addEventListener('click', event => {
+    const square = event.target.closest('.square--playable');
+    if (square) onSquareClick(square.dataset.square);
+});
+
+ui.zoomIn.addEventListener('click', () => setZoom(state.zoom + ZOOM.step));
+ui.zoomOut.addEventListener('click', () => setZoom(state.zoom - ZOOM.step));
+
+ui.shareLink.addEventListener('click', async () => {
+    try {
+        await navigator.clipboard.writeText(location.href);
+        const original = ui.shareLink.textContent;
+        ui.shareLink.textContent = 'Copied!';
+        setTimeout(() => ui.shareLink.textContent = original, 2000);
+    } catch {
+        say('Failed to copy link.', 'error');
+    }
+});
+
+// =====================================================
+// Inicialização
+// =====================================================
+
+setConnectionState('connecting', 'connecting...');
+setZoom(state.zoom);
+
+// Preenche o ID da partida se a página foi aberta por um link compartilhado
 if (location.hash.length > 1) {
     ui.matchIdInput.value = decodeURIComponent(location.hash.slice(1));
 }
 
 connection.start()
-    .then(() => setConnectionState('connected', 'conectado'))
+    .then(() => setConnectionState('connected', 'connected'))
     .catch(error => {
-        setConnectionState('disconnected', 'falha ao conectar');
+        setConnectionState('disconnected', 'failed to connect');
         say(String(error), 'error');
     });

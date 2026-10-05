@@ -1,65 +1,72 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Xadrez em tempo real</title>
+    <title>Real-time Chess</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<main class="app">
-    <header class="app__header">
-        <h1>Xadrez</h1>
-        <p class="status" id="connection" data-state="connecting">conectando…</p>
-    </header>
+    <main class="app">
+        <header class="app__header">
+            <h1>Chess</h1>
+            <p class="status" id="connection" data-state="connecting">connecting...</p>
+        </header>
 
-    <section class="lobby" id="lobby">
-        <button type="button" id="create">Criar partida</button>
+        <section class="lobby" id="lobby">
+            <button type="button" id="create">Create match</button>
 
-        <form class="lobby__join" id="join-form">
-            <label for="match-id">Entrar numa partida</label>
-            <div class="lobby__row">
-                <input type="text" id="match-id" placeholder="id da partida" autocomplete="off" spellcheck="false">
-                <button type="submit">Entrar</button>
-            </div>
-        </form>
-    </section>
+            <form class="lobby__join" id="join-form">
+                <label for="match-id">Join a match</label>
+                <div class="lobby__row">
+                    <input type="text" id="match-id" placeholder="match id" autocomplete="off" spellcheck="false">
+                    <button type="submit">Join</button>
+                </div>
+            </form>
+        </section>
 
-    <section class="game" id="game" hidden>
-        <div class="board-area">
-            <div class="board" id="board"></div>
-            <div class="files" id="files"></div>
-        </div>
-
-        <aside class="panel">
-            <dl class="panel__facts">
-                <dt>Partida</dt>
-                <dd><code id="match-label"></code></dd>
-
-                <dt>Você</dt>
-                <dd id="my-color"></dd>
-
-                <dt>Turno</dt>
-                <dd id="turn"></dd>
-
-                <dt>Vez de</dt>
-                <dd id="current-player"></dd>
-            </dl>
-
-            <p class="panel__state" id="game-state"></p>
-
-            <div class="captured">
-                <h2>Capturadas</h2>
-                <p class="captured__row"><span>Brancas</span><span id="captured-white">—</span></p>
-                <p class="captured__row"><span>Pretas</span><span id="captured-black">—</span></p>
+        <section class="game" id="game" hidden>
+            <div class="board-area" id="board-area">
+                <div class="board" id="board"></div>
+                <div class="files" id="files"></div>
+                <div class="zoom">
+                    <button type="button" class="btn-secondary" id="zoom-out" aria-label="Zoom out">−</button>
+                    <span id="zoom-level" aria-live="polite">100%</span>
+                    <button type="button" class="btn-secondary" id="zoom-in" aria-label="Zoom in">+</button>
+                </div>
             </div>
 
-            <p class="log" id="log" role="status" aria-live="polite"></p>
-        </aside>
-    </section>
-</main>
+            <aside class="panel">
+                <dl class="panel__facts">
+                    <dt>Match</dt>
+                    <dd><code id="match-label"></code></dd>
 
-<script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@9/dist/browser/signalr.min.js"></script>
-<script src="app.js"></script>
+                    <dt>You</dt>
+                    <dd id="my-color"></dd>
+
+                    <dt>Turn</dt>
+                    <dd id="turn"></dd>
+
+                    <dt>To play</dt>
+                    <dd id="current-player"></dd>
+                </dl>
+
+                <p class="panel__state" id="game-state"></p>
+
+                <div class="captured">
+                    <h2>Captured</h2>
+                    <p class="captured__row"><span>White</span><span id="captured-white">—</span></p>
+                    <p class="captured__row"><span>Black</span><span id="captured-black">—</span></p>
+                </div>
+
+                <button type="button" id="share-link" class="btn-secondary">Share Link</button>
+
+                <p class="log" id="log" role="status" aria-live="polite"></p>
+            </aside>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@9/dist/browser/signalr.min.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

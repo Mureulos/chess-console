@@ -1,5 +1,7 @@
 /* Representa o tabuleiro de xadrez e controla as peças posicionadas em cada casa
  * É responsável por colocar, remover e localizar peças, além de validar posições.*/
+using chess_console.Exceptions;
+
 namespace board;
 
 public class Board
