@@ -1,11 +1,10 @@
-using System.Runtime.CompilerServices;
 using board;
 using chess;
+using System.Runtime.CompilerServices;
 
 namespace chess_console.Core.Matches;
 
-// Uma partida isolada: o ChessMatch em si, quem ocupa cada cor e o lock que
-// serializa as operações que chegam dos dois jogadores ao mesmo tempo.
+// GameSession encapsula uma partida, assentos e exclusão mútua (Contém um ChessMatch e um SemaphoreSlim).
 public sealed class GameSession
 {
     // SemaphoreSlim só precisa de Dispose quando AvailableWaitHandle é usado — aqui
@@ -28,7 +27,8 @@ public sealed class GameSession
 
     public Guid Id { get; }
 
-    // Só deve ser lido/alterado de dentro de ExecuteAsync.
+    /* Representa o estado completo da partida de xadrez.
+     * GameSession usa esse objeto para controlar a partida entre duas conexões. */
     public ChessMatch Match { get; }
 
     public DateTime CreatedAtUtc { get; }
@@ -63,8 +63,10 @@ public sealed class GameSession
 
     public bool IsTurnOf(string? connectionId) => ColorOf(connectionId) == Match.actualPlayerColor;
 
-    // Senta a conexão na primeira cor livre (branco, depois preto). É idempotente:
-    // se a conexão já está na partida, devolve a cor que ela já ocupa.
+    /* Tenta colocar a conexão em uma das duas cadeiras da partida
+     * A primeira conexão recebe as peças brancas e a segunda recebe as peças pretas. 
+     * Se a conexão já estiver sentada, o método mantém a cor que ela já possuía. 
+     * Retorna false quando as duas cadeiras já estão ocupadas. */
     public bool TryTakeSeat(string connectionId, out Color color)
     {
         EnsureLocked();
@@ -95,8 +97,9 @@ public sealed class GameSession
         return false;
     }
 
-    // Libera a cadeira da conexão (desconexão). A partida continua existindo para
-    // que o jogador possa reentrar ocupando a cor vaga.
+    /* Remove a conexão da cadeira que ela ocupa.
+     * Isso acontece, por exemplo, quando o jogador fecha o navegador ou perde a conexão.
+     * Retorna true quando a conexão realmente estava sentada em uma das cadeiras. */
     public bool ReleaseSeat(string? connectionId)
     {
         EnsureLocked();
@@ -113,8 +116,9 @@ public sealed class GameSession
         return true;
     }
 
-    // Único ponto de entrada para mexer na partida: garante que branco e preto
-    // nunca executem em cima do mesmo ChessMatch ao mesmo tempo.
+    /* Executa uma operação que precisa acessar ou alterar a sessão e retorna um resultado.
+     * O semáforo permite que apenas uma operação por vez altere o estado da partida.
+     * Assim, dois jogadores não conseguem executar movimentos simultaneamente sobre o mesmo tabuleiro. */
     public async Task<T> ExecuteAsync<T>(Func<GameSession, T> operation, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(operation);
@@ -131,6 +135,8 @@ public sealed class GameSession
         }
     }
 
+    /* Versão do ExecuteAsync para operações que não precisam retornar um resultado.
+     * Ela reutiliza a versão genérica para aplicar a mesma proteção de exclusão mútua.*/
     public Task ExecuteAsync(Action<GameSession> operation, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(operation);
@@ -142,9 +148,9 @@ public sealed class GameSession
         }, cancellationToken);
     }
 
-    // Rede de proteção para quem esquecer do ExecuteAsync. Não é uma garantia forte
-    // (só diz que alguém segura o lock, não que é o chamador atual), mas pega o erro
-    // mais comum já no primeiro teste.
+    /* Verifica se o método atual está sendo executado dentro de ExecuteAsync.
+     * Os métodos que alteram a sessão só podem ser chamados com o semáforo adquirido.
+     * Caso contrário, lança uma exceção para evitar acesso simultâneo e inseguro ao estado da partida. */
     private void EnsureLocked([CallerMemberName] string? member = null)
     {
         if (_gate.CurrentCount != 0)

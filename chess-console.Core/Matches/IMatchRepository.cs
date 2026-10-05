@@ -1,7 +1,7 @@
 namespace chess_console.Core.Matches;
 
-// Guarda as partidas vivas. Substitui o ChessMatch único e estático do Program.cs:
-// cada partida passa a ser endereçada por um Guid.
+/* Guarda as partidas vivas. Substitui o ChessMatch único e estático do Program.cs
+ * Cada partida passa a ser endereçada por um Guid. */
 public interface IMatchRepository
 {
     int Count { get; }

@@ -2,10 +2,12 @@ using System.Collections.Concurrent;
 
 namespace chess_console.Core.Matches;
 
-// Implementação em memória: serve para um único processo (o monolito do plano).
-// Trocar por Redis/banco depois é só reimplementar esta interface.
+/* InMemoryMatchRepository é o responsável por armazenar e localizar as partidas ativas da aplicação. 
+ * InMemory: os dados ficam somente na memória do processo.
+ * MatchRepository: fornece operações para criar, buscar e remover partidas.*/
 public sealed class InMemoryMatchRepository : IMatchRepository
 {
+    // Onde as partidas são armazenadas
     private readonly ConcurrentDictionary<Guid, GameSession> _sessions = new();
 
     public int Count => _sessions.Count;
@@ -14,8 +16,8 @@ public sealed class InMemoryMatchRepository : IMatchRepository
     {
         GameSession session = new();
 
-        // Guid.NewGuid() não colide na prática; o retry só garante que uma partida
-        // nova nunca sobrescreva uma partida viva.
+        /* Guid.NewGuid() não colide.
+         * Garante que uma partida nova nunca sobrescreva uma partida viva.*/
         while (!_sessions.TryAdd(session.Id, session))
             session = new GameSession();
 

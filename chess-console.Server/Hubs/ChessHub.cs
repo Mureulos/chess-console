@@ -5,6 +5,11 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace chess_console.Server.Hubs;
 
+/* ChessHub é a camada de transporte (Handshake e conexão websocket). 
+ * Responsável por realizar o contrato entre cliente/aplicação, 
+ * expor os métodos publico (mantendo uma conexão persistente) e 
+ * enviar mensagens ao cliente*/
+
 public sealed class ChessHub : Hub
 {
     public const string BoardStateEvent = "ReceiveBoardState";
@@ -21,6 +26,7 @@ public sealed class ChessHub : Hub
         _matches = matches;
     }
 
+    // Chama o serviço e adicionam a conexão ao grupo cujo nome é o matchId.
     public Task<MatchJoinedDto?> CreateMatch() =>
         GuardAsync(async () =>
         {
@@ -30,6 +36,7 @@ public sealed class ChessHub : Hub
             return match;
         });
 
+    // Chama o serviço e adicionam a conexão ao grupo cujo nome é o matchId. (avisa ao primeiro jogador quando o oponente entra)
     public Task<MatchJoinedDto?> JoinMatch(Guid matchId) =>
         GuardAsync(async () =>
         {
@@ -42,9 +49,11 @@ public sealed class ChessHub : Hub
             return match;
         });
 
+    // Retorna dados ao chamador
     public Task<BoardStateDto?> GetBoardState(Guid matchId) =>
         GuardAsync(() => _matches.GetStateAsync(matchId));
 
+    // Retorna dados ao chamador
     public Task<PossibleMovesDto?> GetPossibleMoves(Guid matchId, string origin) =>
         GuardAsync(() => _matches.GetPossibleMovesAsync(matchId, origin, Context.ConnectionId));
 

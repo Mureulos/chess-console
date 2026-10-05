@@ -3,18 +3,21 @@ using chess_console.Exceptions;
 
 namespace chess;
 
+/* Representa o estado completo da partida de xadrez.
+ * Dentro de ChessMatch ficam o tabuleiro, as peças, o turno atual,
+ * o jogador da vez e as informações sobre xeque ou fim da partida.*/
 public class ChessMatch
 {
     public Board board { get; private set; }
     public int turn { get; private set; }
     public Color actualPlayerColor { get; private set; }
-    
+
     public bool check { get; private set; }
     public bool completed { get; private set; }
     private HashSet<Piece> _pieces;
     private HashSet<Piece> _capturedPieces;
     public Piece vulnerableEnPassant { get; private set; }
-    
+
     public ChessMatch()
     {
         board = new Board();
@@ -33,7 +36,7 @@ public class ChessMatch
         piece.AddMove();
         Piece caughtPiece = board.RemovePiece(target);
         board.PutPiece(piece, target);
-        
+
         if (caughtPiece != null)
             _capturedPieces.Add(caughtPiece);
 
@@ -68,15 +71,15 @@ public class ChessMatch
                 _capturedPieces.Add(caughtPiece);
             }
         }
-        
+
         return caughtPiece;
     }
-    
+
     private void UndoMoviment(Position origin, Position target, Piece caughtPiece)
     {
         Piece piece = board.RemovePiece(target);
         piece.SubMove();
-        
+
         if (caughtPiece != null)
         {
             // No en passant a peça capturada não estava em target, e sim na casa ao
@@ -123,13 +126,13 @@ public class ChessMatch
     public void MakeMove(Position origin, Position target)
     {
         Piece caughtPiece = ExecuteMoviment(origin, target);
-        
+
         if (IsInCheck(actualPlayerColor))
         {
             UndoMoviment(origin, target, caughtPiece);
             throw new BoardException("You can't put yourself in check");
         }
-        
+
         Piece piece = board.piece(target);
 
         // Só peão promove: "piece is Piece" era sempre verdadeiro e transformava em
@@ -139,27 +142,27 @@ public class ChessMatch
             if ((piece.color == Color.White && target.row == 0) || (piece.color == Color.Black && target.row == 7))
             {
                 piece = board.RemovePiece(target);
-                _pieces.Remove(piece);  
-                
+                _pieces.Remove(piece);
+
                 Piece queen = new Queen(board, piece.color);
                 board.PutPiece(queen, target);
                 _pieces.Add(queen);
             }
         }
-        
+
         if (IsInCheck(Opponent(actualPlayerColor)))
             check = true;
         else
             check = false;
-            
+
         if (IsInCheckmate(Opponent(actualPlayerColor)))
             completed = true;
         else
             completed = false;
-        
-        turn++; 
+
+        turn++;
         ChangePlayer();
-        
+
         if (piece is Pawn && (target.row == origin.row - 2 || target.row == origin.row + 2))
             vulnerableEnPassant = piece;
         else
@@ -195,8 +198,8 @@ public class ChessMatch
         board.PutPiece(piece, new ChessPosition(column, row).ToPosition());
         _pieces.Add(piece);
     }
-    
-    public void SetBoard()  
+
+    public void SetBoard()
     {
         PositionNewPiece('a', 1, new Tower(board, Color.White));
         PositionNewPiece('b', 1, new Knight(board, Color.White));
@@ -214,7 +217,7 @@ public class ChessMatch
         PositionNewPiece('f', 2, new Pawn(board, Color.White, this));
         PositionNewPiece('g', 2, new Pawn(board, Color.White, this));
         PositionNewPiece('h', 2, new Pawn(board, Color.White, this));
-        
+
         PositionNewPiece('a', 8, new Tower(board, Color.Black));
         PositionNewPiece('b', 8, new Knight(board, Color.Black));
         PositionNewPiece('c', 8, new Bishop(board, Color.Black));
@@ -244,10 +247,10 @@ public class ChessMatch
                 aux.Add(piece);
             }
         }
-        
+
         return aux;
     }
-    
+
     public HashSet<Piece> GetPiecesInGame(Color color)
     {
         HashSet<Piece> aux = new HashSet<Piece>();
@@ -271,7 +274,7 @@ public class ChessMatch
             if (piece is King)
                 return piece;
         }
-        
+
         return null;
     }
 
@@ -279,14 +282,14 @@ public class ChessMatch
     {
         if (color == Color.White)
             return Color.Black;
-        
+
         return Color.White;
     }
 
     public bool IsInCheck(Color color)
     {
         Piece king = IsItKing(color);
-        
+
         if (king == null)
             throw new BoardException("There is no king of this color on the board");
 
@@ -316,7 +319,7 @@ public class ChessMatch
         foreach (var piece in GetPiecesInGame(color))
         {
             bool[,] matrix = piece.PossibleMoves();
-            
+
             for (int i = 0; i < board.rows; i++)
             {
                 for (int j = 0; j < board.columns; j++)

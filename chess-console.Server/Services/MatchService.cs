@@ -6,8 +6,9 @@ using chess_console.Exceptions;
 
 namespace chess_console.Server.Services;
 
-// Regras de sessão, turno e concorrência. O Hub só cuida do transporte: tudo que é
-// decisão ("é a sua vez?", "essa partida existe?") mora aqui e é testável sem SignalR.
+/* MatchService é a camada de aplicação (Regras de sessão, turno, concorrência e tudo que é decisão). 
+ * Ele impede que o Hub conheça detalhes de armazenamento ou regras de assento */
+
 public sealed class MatchService
 {
     private readonly IMatchRepository _repository;
@@ -19,15 +20,19 @@ public sealed class MatchService
         _repository = repository;
     }
 
+    // Pede uma nova sessão ao repositório e ocupa a primeira cadeira, sempre branca.
     public Task<MatchJoinedDto> CreateAsync(string connectionId, CancellationToken cancellationToken = default) =>
         TakeSeatAsync(_repository.Create(), connectionId, cancellationToken);
 
+    // Procura o Guid, ocupa a cadeira livre e devolve a cor e o estado inicial.
     public Task<MatchJoinedDto> JoinAsync(Guid matchId, string connectionId, CancellationToken cancellationToken = default) =>
         TakeSeatAsync(Require(matchId), connectionId, cancellationToken);
 
+    // Entra no lock da sessão e transforma o ChessMatch em BoardStateDto.
     public Task<BoardStateDto> GetStateAsync(Guid matchId, CancellationToken cancellationToken = default) =>
         Require(matchId).ExecuteAsync(session => BoardMapper.ToDto(session.Match), cancellationToken);
 
+    // Verifica se a conexão é o jogador da vez, converte "e2" (linguagem natural do xadrez) em Position e delega a validação ao Core
     public Task<PossibleMovesDto> GetPossibleMovesAsync(
         Guid matchId,
         string? origin,
@@ -40,6 +45,7 @@ public sealed class MatchService
             return BoardMapper.ToPossibleMoves(session.Match, ChessPosition.Parse(origin).ToPosition());
         }, cancellationToken);
 
+    // Verifica conexão, partida cheia, partida encerrada e turno; depois executa ValideOriginPosition, ValidadeTargetPosition e MakeMove dentro do lock.
     public Task<MoveResultDto> MakeMoveAsync(
         Guid matchId,
         string? origin,
@@ -61,7 +67,7 @@ public sealed class MatchService
             return BoardMapper.ToMoveResult(session.Match, from, to);
         }, cancellationToken);
 
-    // Devolve o id da partida de onde a conexão saiu, ou null se ela não estava em nenhuma.
+    // Encontra a sessão pela conexão, libera a cadeira e remove a partida somente quando os dois jogadores saíram.
     public async Task<Guid?> LeaveAsync(string connectionId, CancellationToken cancellationToken = default)
     {
         GameSession? session = _repository.FindByConnection(connectionId);
@@ -96,8 +102,6 @@ public sealed class MatchService
     private GameSession Require(Guid matchId) =>
         _repository.Get(matchId) ?? throw new BoardException("Match not found");
 
-    // Ponto 4 do diagnóstico: ValideOriginPosition só compara cores, não sabe quem está
-    // conectado. Sem amarrar a conexão à cor da vez, qualquer client move as duas cores.
     private static void EnsureItIsTheTurnOf(GameSession session, string connectionId)
     {
         if (!session.IsSeated(connectionId))
