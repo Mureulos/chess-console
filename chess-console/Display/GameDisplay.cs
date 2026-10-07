@@ -141,19 +141,20 @@ public class GameDisplay
         Console.WriteLine();
     }
 
-    public void DisplayGameHistory(List<string> moves)
+    public void DisplayGameHistory(IReadOnlyList<string> moves)
     {
         if (moves.Count == 0)
             return;
 
-        Console.WriteLine("┌─ MOVE HISTORY ────────────┐");
+        Console.WriteLine("┌─ MOVE HISTORY ─────────────────┐");
         
-        for (int i = 0; i < moves.Count; i++)
+        for (int i = 0; i < moves.Count; i += 2)
         {
-            Console.WriteLine($"│ {i + 1:00}. {moves[i],-18}│");
+            string blackMove = i + 1 < moves.Count ? moves[i + 1] : string.Empty;
+            Console.WriteLine($"│ {i / 2 + 1:00}. {moves[i],-8} {blackMove,-8} │");
         }
 
-        Console.WriteLine("└────────────────────────────┘");
+        Console.WriteLine("└────────────────────────────────┘");
         Console.WriteLine();
     }
 
@@ -165,7 +166,7 @@ public class GameDisplay
         DisplayCapturedPieces(match);
     }
 
-    public void DisplayFullGameWithHistory(ChessMatch match, List<string> moves, bool[,] possibleMoves = null, Position selectedPosition = null)
+    public void DisplayFullGameWithHistory(ChessMatch match, IReadOnlyList<string> moves, bool[,] possibleMoves = null, Position selectedPosition = null)
     {
         Console.Clear();
         DisplayGameStatus(match);

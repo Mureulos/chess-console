@@ -15,7 +15,7 @@ internal class Program
         {
             try
             {
-                display.DisplayFullGame(chessMatch);
+                display.DisplayFullGameWithHistory(chessMatch, chessMatch.MoveHistory);
                 
                 Console.Write("Origin: ");
                 Position origin = Screen.ReadChessPosition().ToPosition();
@@ -23,7 +23,7 @@ internal class Program
                 chessMatch.ValideOriginPosition(origin);
                 bool[,] possibleMoves = chessMatch.board.piece(origin).PossibleMoves();
                 
-                display.DisplayFullGame(chessMatch, possibleMoves, origin);
+                display.DisplayFullGameWithHistory(chessMatch, chessMatch.MoveHistory, possibleMoves, origin);
                 
                 Console.Write("Target: ");
                 Position target = Screen.ReadChessPosition().ToPosition();

@@ -21,8 +21,10 @@ public class ChessMatch
     public int moveCount { get; private set; }
     private HashSet<Piece> _pieces;
     private HashSet<Piece> _capturedPieces;
+    private readonly List<string> _moveHistory;
     private readonly List<string> _positionHistory;
     private readonly Dictionary<string, int> _positionOccurrences;
+    public IReadOnlyList<string> MoveHistory => _moveHistory;
     public Piece vulnerableEnPassant { get; private set; }
 
     public ChessMatch()
@@ -36,6 +38,7 @@ public class ChessMatch
         vulnerableEnPassant = null;
         _pieces = new HashSet<Piece>();
         _capturedPieces = new HashSet<Piece>();
+        _moveHistory = new List<string>();
         _positionHistory = new List<string>();
         _positionOccurrences = new Dictionary<string, int>();
         SetBoard();
@@ -47,6 +50,33 @@ public class ChessMatch
         string position = GetPositionKey();
         _positionHistory.Add(position);
         _positionOccurrences[position] = _positionOccurrences.GetValueOrDefault(position) + 1;
+    }
+
+    private static string FormatMove(Position origin, Position target, Piece caughtPiece, PromotionPiece? promotion)
+    {
+        ChessPosition originPosition = ToChessPosition(origin);
+        ChessPosition targetPosition = ToChessPosition(target);
+        string captureMarker = caughtPiece is null ? "-" : "x";
+        string promotionSuffix = promotion is null ? string.Empty : $"={PromotionSymbol(promotion.Value)}";
+
+        return $"{originPosition}{captureMarker}{targetPosition}{promotionSuffix}";
+    }
+
+    private static ChessPosition ToChessPosition(Position position)
+    {
+        return new ChessPosition((char)('a' + position.column), 8 - position.row);
+    }
+
+    private static char PromotionSymbol(PromotionPiece promotion)
+    {
+        return promotion switch
+        {
+            PromotionPiece.Queen => 'Q',
+            PromotionPiece.Rook => 'R',
+            PromotionPiece.Bishop => 'B',
+            PromotionPiece.Knight => 'N',
+            _ => throw new ArgumentOutOfRangeException(nameof(promotion))
+        };
     }
 
     private bool IsThreefoldRepetition()
@@ -279,6 +309,7 @@ public class ChessMatch
         else
             vulnerableEnPassant = null;
 
+        _moveHistory.Add(FormatMove(origin, target, caughtPiece, promotion));
         RecordPosition();
 
         if (isCheckmate)
