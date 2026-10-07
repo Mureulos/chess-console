@@ -29,7 +29,16 @@ internal class Program
                 Position target = Screen.ReadChessPosition().ToPosition();
                 
                 chessMatch.ValidadeTargetPosition(origin, target); 
-                chessMatch.MakeMove(origin, target);
+
+                PromotionPiece? promotion = null;
+                Piece movingPiece = chessMatch.board.piece(origin);
+                if (movingPiece is Pawn && (target.row == 0 || target.row == 7))
+                {
+                    Console.Write("Promotion (Q/R/B/N): ");
+                    promotion = ReadPromotionPiece();
+                }
+
+                chessMatch.MakeMove(origin, target, promotion);
             }
             catch (BoardException e)
             {
@@ -46,5 +55,17 @@ internal class Program
             ? "║ Result: Draw           ║"
             : $"║ Winner: {chessMatch.Opponent(chessMatch.actualPlayerColor),-8} ║");
         Console.WriteLine("╚════════════════════════╝");
+    }
+
+    private static PromotionPiece ReadPromotionPiece()
+    {
+        return Console.ReadLine()?.Trim().ToUpperInvariant() switch
+        {
+            "Q" => PromotionPiece.Queen,
+            "R" => PromotionPiece.Rook,
+            "B" => PromotionPiece.Bishop,
+            "N" => PromotionPiece.Knight,
+            _ => throw new BoardException("Invalid promotion piece")
+        };
     }
 }

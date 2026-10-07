@@ -57,10 +57,21 @@ public sealed class ChessHub : Hub
     public Task<PossibleMovesDto?> GetPossibleMoves(Guid matchId, string origin) =>
         GuardAsync(() => _matches.GetPossibleMovesAsync(matchId, origin, Context.ConnectionId));
 
-    public async Task MakeMove(Guid matchId, string origin, string target)
+    public Task MakeMove(Guid matchId, string origin, string target) =>
+        MakeMoveCore(matchId, origin, target, null);
+
+    public Task MakeMoveWithPromotion(Guid matchId, string origin, string target, string promotion) =>
+        MakeMoveCore(matchId, origin, target, promotion);
+
+    private async Task MakeMoveCore(Guid matchId, string origin, string target, string? promotion)
     {
         MoveResultDto? result = await GuardAsync(
-            () => _matches.MakeMoveAsync(matchId, origin, target, Context.ConnectionId));
+            () => _matches.MakeMoveAsync(
+                matchId,
+                origin,
+                target,
+                Context.ConnectionId,
+                promotion: promotion));
 
         if (result is null)
             return;

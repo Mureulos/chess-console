@@ -383,14 +383,35 @@ public class ChessMatchTests
     [Fact]
     public void MakeMove_PromotesAPawnThatReachesTheLastRank()
     {
-        ChessMatch match = Match(
-            "a2a4", "b7b5", "a4b5", "a7a6", "b5b6", "a6a5", "b6c7", "a5a4", "c7b8");
+        ChessMatch match = PromotionMatch(PromotionPiece.Queen);
 
         Piece? promoted = PieceAt(match, "b8");
 
         Assert.IsType<Queen>(promoted);
         Assert.Equal(Color.White, promoted!.color);
         Assert.Contains(promoted, match.GetPiecesInGame(Color.White));
+    }
+
+    [Theory]
+    [InlineData(PromotionPiece.Rook, typeof(Tower))]
+    [InlineData(PromotionPiece.Bishop, typeof(Bishop))]
+    [InlineData(PromotionPiece.Knight, typeof(Knight))]
+    public void MakeMove_PromotesToTheSelectedPiece(PromotionPiece promotion, Type expectedType)
+    {
+        ChessMatch match = PromotionMatch(promotion);
+
+        Assert.IsType(expectedType, PieceAt(match, "b8"));
+    }
+
+    [Fact]
+    public void MakeMove_RequiresAValidPromotionChoice()
+    {
+        ChessMatch match = Match(
+            "a2a4", "b7b5", "a4b5", "a7a6", "b5b6", "a6a5", "b6c7", "a5a4");
+
+        Assert.Equal("A promotion piece must be selected",
+            ErrorOf(() => Play(match, "c7b8")));
+        Assert.IsType<Pawn>(PieceAt(match, "c7"));
     }
 
     [Fact]
@@ -416,14 +437,23 @@ public class ChessMatchTests
         return match;
     }
 
-    private static void Play(ChessMatch match, string move)
+    private static ChessMatch PromotionMatch(PromotionPiece promotion)
+    {
+        ChessMatch match = Match(
+            "a2a4", "b7b5", "a4b5", "a7a6", "b5b6", "a6a5", "b6c7", "a5a4");
+
+        Play(match, "c7b8", promotion);
+        return match;
+    }
+
+    private static void Play(ChessMatch match, string move, PromotionPiece? promotion = null)
     {
         Position origin = Square(move[..2]);
         Position target = Square(move[2..]);
 
         match.ValideOriginPosition(origin);
         match.ValidadeTargetPosition(origin, target);
-        match.MakeMove(origin, target);
+        match.MakeMove(origin, target, promotion);
     }
 
     private static bool CanReach(ChessMatch match, string from, string to)

@@ -220,8 +220,19 @@ public class ChessMatch
                && origin.row == (piece.color == Color.White ? 3 : 4);
     }
 
-    public void MakeMove(Position origin, Position target)
+    public void MakeMove(Position origin, Position target, PromotionPiece? promotion = null)
     {
+        Piece originPiece = board.piece(origin);
+        bool reachesPromotionRank = originPiece is Pawn
+            && ((originPiece.color == Color.White && target.row == 0)
+                || (originPiece.color == Color.Black && target.row == 7));
+
+        if (reachesPromotionRank && promotion is null)
+            throw new BoardException("A promotion piece must be selected");
+
+        if (!reachesPromotionRank && promotion is not null)
+            throw new BoardException("Promotion is only valid when a pawn reaches the last rank");
+
         Piece caughtPiece = ExecuteMoviment(origin, target);
 
         if (IsInCheck(actualPlayerColor))
@@ -246,9 +257,9 @@ public class ChessMatch
                 piece = board.RemovePiece(target);
                 _pieces.Remove(piece);
 
-                Piece queen = new Queen(board, piece.color);
-                board.PutPiece(queen, target);
-                _pieces.Add(queen);
+                Piece promotedPiece = CreatePromotionPiece(piece.color, promotion!.Value);
+                board.PutPiece(promotedPiece, target);
+                _pieces.Add(promotedPiece);
             }
         }
 
@@ -275,6 +286,7 @@ public class ChessMatch
             completed = true;
             draw = false;
         }
+
         else if (isStalemate)
         {
             completed = true;
@@ -296,6 +308,15 @@ public class ChessMatch
             draw = false;
         }
     }
+
+    private Piece CreatePromotionPiece(Color color, PromotionPiece promotion) => promotion switch
+    {
+        PromotionPiece.Queen => new Queen(board, color),
+        PromotionPiece.Rook => new Tower(board, color),
+        PromotionPiece.Bishop => new Bishop(board, color),
+        PromotionPiece.Knight => new Knight(board, color),
+        _ => throw new BoardException("Invalid promotion piece")
+    };
 
     public void ValideOriginPosition(Position position)
     {

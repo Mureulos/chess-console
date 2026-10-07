@@ -51,7 +51,8 @@ public sealed class MatchService
         string? origin,
         string? target,
         string connectionId,
-        CancellationToken cancellationToken = default) =>
+        CancellationToken cancellationToken = default,
+        string? promotion = null) =>
         Require(matchId).ExecuteAsync(session =>
         {
             EnsureItIsTheTurnOf(session, connectionId);
@@ -62,10 +63,25 @@ public sealed class MatchService
             // As mesmas três chamadas do laço do Program.cs, agora atrás do lock da sessão.
             session.Match.ValideOriginPosition(from);
             session.Match.ValidadeTargetPosition(from, to);
-            session.Match.MakeMove(from, to);
+            session.Match.MakeMove(from, to, ParsePromotion(promotion));
 
             return BoardMapper.ToMoveResult(session.Match, from, to);
         }, cancellationToken);
+
+    private static PromotionPiece? ParsePromotion(string? promotion)
+    {
+        if (promotion is null)
+            return null;
+
+        return promotion.Trim().ToLowerInvariant() switch
+        {
+            "q" or "queen" => PromotionPiece.Queen,
+            "r" or "rook" => PromotionPiece.Rook,
+            "b" or "bishop" => PromotionPiece.Bishop,
+            "n" or "knight" => PromotionPiece.Knight,
+            _ => throw new BoardException("Invalid promotion piece")
+        };
+    }
 
     // Encontra a sessão pela conexão, libera a cadeira e remove a partida somente quando os dois jogadores saíram.
     public async Task<Guid?> LeaveAsync(string connectionId, CancellationToken cancellationToken = default)

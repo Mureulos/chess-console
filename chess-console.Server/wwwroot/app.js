@@ -236,9 +236,17 @@ async function onSquareClick(square) {
 
     if (state.targets.includes(square)) {
         const origin = state.selected;
+        const movingPiece = pieceAt(origin);
+        const promotion = promotionChoice(movingPiece, square);
+        if (promotion === false) {
+            say('Choose a valid promotion piece.', 'error');
+            return;
+        }
+
         clearSelection();
         render();
-        await connection.invoke('MakeMove', state.matchId, origin, square);
+        const method = promotion ? 'MakeMoveWithPromotion' : 'MakeMove';
+        await connection.invoke(method, state.matchId, origin, square, ...(promotion ? [promotion] : []));
         return;
     }
 
@@ -254,6 +262,20 @@ async function onSquareClick(square) {
     }
 
     render();
+}
+
+function promotionChoice(piece, square) {
+    if (piece?.type !== 'Pawn' || !['1', '8'].includes(square.at(-1))) return null;
+
+    const choice = window.prompt('Promote to: Queen (Q), Rook (R), Bishop (B) or Knight (N)', 'Q');
+    if (choice === null) return false;
+
+    return {
+        q: 'Queen',
+        r: 'Rook',
+        b: 'Bishop',
+        n: 'Knight'
+    }[choice.trim().toLowerCase()] ?? false;
 }
 
 // =====================================================

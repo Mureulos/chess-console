@@ -74,6 +74,26 @@ public class MatchServiceTests
         Assert.Contains(result.State.Pieces, piece => piece.Position == "e4" && piece.Type == "Pawn");
     }
 
+    [Fact]
+    public async Task MakeMoveAsync_AppliesTheSelectedPromotion()
+    {
+        MatchService service = NewService();
+        Guid matchId = await StartMatchAsync(service);
+
+        await service.MakeMoveAsync(matchId, "a2", "a4", White);
+        await service.MakeMoveAsync(matchId, "b7", "b5", Black);
+        await service.MakeMoveAsync(matchId, "a4", "b5", White);
+        await service.MakeMoveAsync(matchId, "a7", "a6", Black);
+        await service.MakeMoveAsync(matchId, "b5", "b6", White);
+        await service.MakeMoveAsync(matchId, "a6", "a5", Black);
+        await service.MakeMoveAsync(matchId, "b6", "c7", White);
+        await service.MakeMoveAsync(matchId, "a5", "a4", Black);
+        MoveResultDto result = await service.MakeMoveAsync(
+            matchId, "c7", "b8", White, promotion: "knight");
+
+        Assert.Contains(result.State.Pieces, piece => piece.Position == "b8" && piece.Type == "Knight");
+    }
+
     // O ponto central da Fase 4: hoje o ChessMatch só sabe de cor, não de conexão.
     [Fact]
     public async Task MakeMoveAsync_RefusesThePlayerWhoIsNotToMove()
