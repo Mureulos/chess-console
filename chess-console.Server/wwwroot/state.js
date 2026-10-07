@@ -22,6 +22,7 @@ export const state = {
     selected: null,
     targets: [],
     lastMove: null,
+    moveHistory: [],
     opponentPresent: false,
     zoom: 1
 };

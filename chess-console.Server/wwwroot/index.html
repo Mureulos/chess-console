@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Real-time Chess</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -36,37 +37,67 @@
                 </div>
             </div>
 
-            <aside class="panel">
-                <dl class="panel__facts">
-                    <dt>Match</dt>
-                    <dd><code id="match-label"></code></dd>
+            <aside class="panel" aria-label="Match information">
+                <div class="swiper" id="game-swiper">
+                    <div class="swiper-wrapper">
+                        <section class="swiper-slide panel__slide" aria-label="Match">
+                            <h2 class="panel__title">Match</h2>
+                            <dl class="panel__facts">
+                                <dt>Match</dt>
+                                <dd><code id="match-label"></code></dd>
 
-                    <dt>You</dt>
-                    <dd id="my-color"></dd>
+                                <dt>You</dt>
+                                <dd id="my-color"></dd>
 
-                    <dt>Turn</dt>
-                    <dd id="turn"></dd>
+                                <dt>Turn</dt>
+                                <dd id="turn"></dd>
 
-                    <dt>To play</dt>
-                    <dd id="current-player"></dd>
-                </dl>
+                                <dt>To play</dt>
+                                <dd id="current-player"></dd>
+                            </dl>
 
-                <p class="panel__state" id="game-state"></p>
+                            <p class="panel__state" id="game-state"></p>
 
-                <div class="captured">
-                    <h2>Captured</h2>
-                    <p class="captured__row"><span>White</span><span id="captured-white">—</span></p>
-                    <p class="captured__row"><span>Black</span><span id="captured-black">—</span></p>
+                            <div class="captured">
+                                <h2>Captured</h2>
+                                <p class="captured__row"><span>White</span><span id="captured-white">—</span></p>
+                                <p class="captured__row"><span>Black</span><span id="captured-black">—</span></p>
+                            </div>
+
+                            <button type="button" id="share-link" class="btn-secondary">Share Link</button>
+
+                            <p class="log" id="log" role="status" aria-live="polite"></p>
+                        </section>
+
+                        <section class="swiper-slide panel__slide" aria-label="Connection">
+                            <h2 class="panel__title">Connection</h2>
+                            <dl class="panel__facts">
+                                <dt>Status</dt>
+                                <dd><span class="status" id="panel-connection" data-state="connecting">connecting...</span></dd>
+
+                                <dt>Match</dt>
+                                <dd><code id="connection-match-label"></code></dd>
+                            </dl>
+                            <p class="panel__connection-help">The connection status updates automatically if the game reconnects.</p>
+                        </section>
+                        
+                        <section class="swiper-slide panel__slide" aria-label="Move history">
+                            <h2 class="panel__title">Move history</h2>
+                            <ol class="move-history" id="move-history" aria-live="polite"></ol>
+                        </section>
+                    </div>
                 </div>
-
-                <button type="button" id="share-link" class="btn-secondary">Share Link</button>
-
-                <p class="log" id="log" role="status" aria-live="polite"></p>
+                <div class="panel__navigation" aria-label="Information slides">
+                    <button type="button" class="btn-secondary panel__nav-button" id="panel-prev" aria-label="Previous slide">‹</button>
+                    <div class="swiper-pagination"></div>
+                    <button type="button" class="btn-secondary panel__nav-button" id="panel-next" aria-label="Next slide">›</button>
+                </div>
             </aside>
         </section>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@9/dist/browser/signalr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script type="module" src="app.js"></script>
 </body>
 </html>

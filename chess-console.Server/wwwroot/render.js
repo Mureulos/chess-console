@@ -1,4 +1,5 @@
 import { ui } from './dom.js';
+import { updateGameSwiper } from './swiper-ui.js';
 import {
     FILES,
     ZOOM,
@@ -67,12 +68,37 @@ function renderPanel() {
     const glyphs = pieces => pieces.map(glyphOf).join('') || '—';
 
     ui.matchLabel.textContent = state.matchId;
+    ui.connectionMatchLabel.textContent = state.matchId;
     ui.myColor.textContent = state.myColor ?? '—';
     ui.turn.textContent = board.turn;
     ui.currentPlayer.textContent = board.currentPlayer;
     ui.capturedWhite.textContent = glyphs(board.capturedWhitePieces);
     ui.capturedBlack.textContent = glyphs(board.capturedBlackPieces);
     ui.gameState.innerHTML = describeState(board);
+    renderMoveHistory();
+    updateGameSwiper();
+}
+
+function renderMoveHistory() {
+    const fragment = document.createDocumentFragment();
+
+    for (let index = 0; index < state.moveHistory.length; index += 2) {
+        const row = document.createElement('li');
+        const number = document.createElement('span');
+        const whiteMove = document.createElement('span');
+        const blackMove = document.createElement('span');
+
+        row.className = 'move-history__row';
+        number.className = 'move-history__number';
+        number.textContent = `${Math.floor(index / 2) + 1}.`;
+        whiteMove.textContent = state.moveHistory[index];
+        blackMove.textContent = state.moveHistory[index + 1] ?? '';
+        row.append(number, whiteMove, blackMove);
+        fragment.append(row);
+    }
+
+    ui.moveHistory.replaceChildren(fragment);
+    ui.moveHistory.scrollTop = ui.moveHistory.scrollHeight;
 }
 
 function describeState(board) {

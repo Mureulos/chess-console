@@ -23,7 +23,8 @@ public static class BoardMapper
             // adversário da vez — a mesma conta que o Program.cs faz no fim do jogo.
             Winner: match.completed && !match.draw ? match.Opponent(match.actualPlayerColor).ToString() : null,
             CapturedWhitePieces: ToDto(match.GetCapturedPieces(Color.White)),
-            CapturedBlackPieces: ToDto(match.GetCapturedPieces(Color.Black)));
+            CapturedBlackPieces: ToDto(match.GetCapturedPieces(Color.Black)),
+            MoveHistory: match.MoveHistory.ToArray());
     }
 
     public static PieceDto ToDto(Piece piece)

@@ -1,6 +1,7 @@
 import { ui, say, setConnectionState } from './dom.js';
 import { clearSelection, isMyTurn, pieceAt, state } from './state.js';
 import { buildBoard, render } from './render.js';
+import { initializeGameSwiper } from './swiper-ui.js';
 
 export const connection = new signalR.HubConnectionBuilder()
     .withUrl('/hubs/chess')
@@ -21,7 +22,8 @@ export async function enterMatch(method, matchId) {
         myColor: match.color,
         board: match.state,
         opponentPresent: joining,
-        lastMove: null
+        lastMove: null,
+        moveHistory: match.state.moveHistory ?? []
     });
 
     clearSelection();
@@ -32,6 +34,7 @@ export async function enterMatch(method, matchId) {
 
     buildBoard();
     render();
+    initializeGameSwiper();
 
     say(joining
         ? `You play as ${match.color}.`
@@ -131,6 +134,7 @@ export function registerConnectionEvents() {
 
     connection.on('ReceiveBoardState', result => {
         state.board = result.state;
+        state.moveHistory = result.state.moveHistory ?? state.moveHistory;
         state.lastMove = {
             origin: result.origin,
             target: result.target

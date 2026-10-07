@@ -11,4 +11,5 @@ public sealed record BoardStateDto(
     bool Draw,
     string? Winner,
     IReadOnlyList<PieceDto> CapturedWhitePieces,
-    IReadOnlyList<PieceDto> CapturedBlackPieces);
+    IReadOnlyList<PieceDto> CapturedBlackPieces,
+    IReadOnlyList<string> MoveHistory);
