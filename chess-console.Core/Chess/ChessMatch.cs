@@ -1,5 +1,6 @@
 using board;
 using chess_console.Exceptions;
+using System.Text;
 
 namespace chess;
 
@@ -18,6 +19,8 @@ public class ChessMatch
     public int moveCount { get; private set; }
     private HashSet<Piece> _pieces;
     private HashSet<Piece> _capturedPieces;
+    private readonly List<string> _positionHistory;
+    private readonly Dictionary<string, int> _positionOccurrences;
     public Piece vulnerableEnPassant { get; private set; }
 
     public ChessMatch()
@@ -31,7 +34,95 @@ public class ChessMatch
         vulnerableEnPassant = null;
         _pieces = new HashSet<Piece>();
         _capturedPieces = new HashSet<Piece>();
+        _positionHistory = new List<string>();
+        _positionOccurrences = new Dictionary<string, int>();
         SetBoard();
+        RecordPosition();
+    }
+
+    private void RecordPosition()
+    {
+        string position = GetPositionKey();
+        _positionHistory.Add(position);
+        _positionOccurrences[position] = _positionOccurrences.GetValueOrDefault(position) + 1;
+    }
+
+    private bool IsThreefoldRepetition()
+    {
+        return _positionOccurrences[GetPositionKey()] >= 3;
+    }
+
+    private string GetPositionKey()
+    {
+        StringBuilder key = new();
+
+        for (int row = 0; row < board.rows; row++)
+        {
+            for (int column = 0; column < board.columns; column++)
+            {
+                Piece? piece = board.piece(row, column);
+                key.Append(piece is null ? '.' : PieceCode(piece));
+            }
+        }
+
+        key.Append('|');
+        key.Append(actualPlayerColor);
+        key.Append('|');
+        key.Append(CastlingRights());
+        key.Append('|');
+        key.Append(EnPassantRight());
+
+        return key.ToString();
+    }
+
+    private string CastlingRights()
+    {
+        StringBuilder rights = new();
+
+        if (HasCastlingRight(Color.White, 7))
+            rights.Append('K');
+        if (HasCastlingRight(Color.White, 0))
+            rights.Append('Q');
+        if (HasCastlingRight(Color.Black, 7))
+            rights.Append('k');
+        if (HasCastlingRight(Color.Black, 0))
+            rights.Append('q');
+
+        return rights.Length == 0 ? "-" : rights.ToString();
+    }
+
+    private bool HasCastlingRight(Color color, int rookColumn)
+    {
+        int row = color == Color.White ? 7 : 0;
+        Piece? king = board.piece(row, 4);
+        Piece? rook = board.piece(row, rookColumn);
+
+        return king is King && king.color == color && king.moveCount == 0
+            && rook is Tower && rook.color == color && rook.moveCount == 0;
+    }
+
+    private string EnPassantRight()
+    {
+        if (vulnerableEnPassant is null || vulnerableEnPassant.position is null)
+            return "-";
+
+        return $"{vulnerableEnPassant.color}:{vulnerableEnPassant.position.row},{vulnerableEnPassant.position.column}";
+    }
+
+    private static char PieceCode(Piece piece)
+    {
+        char type = piece switch
+        {
+            King => 'K',
+            Queen => 'Q',
+            Tower => 'R',
+            Bishop => 'B',
+            Knight => 'N',
+            Pawn => 'P',
+            _ => throw new InvalidOperationException($"Unknown piece type: {piece.GetType().Name}")
+        };
+
+        return piece.color == Color.White ? type : char.ToLowerInvariant(type);
     }
 
     public Piece ExecuteMoviment(Position origin, Position target)
@@ -164,7 +255,19 @@ public class ChessMatch
         else
             check = false;
 
-        if (IsInCheckmate(Opponent(actualPlayerColor)))
+        bool isCheckmate = IsInCheckmate(Opponent(actualPlayerColor));
+
+        turn++;
+        ChangePlayer();
+
+        if (piece is Pawn && (target.row == origin.row - 2 || target.row == origin.row + 2))
+            vulnerableEnPassant = piece;
+        else
+            vulnerableEnPassant = null;
+
+        RecordPosition();
+
+        if (isCheckmate)
         {
             completed = true;
             draw = false;
@@ -174,19 +277,16 @@ public class ChessMatch
             completed = true;
             draw = true;
         }
+        else if (IsThreefoldRepetition())
+        {
+            completed = true;
+            draw = true;
+        }
         else
         {
             completed = false;
             draw = false;
         }
-
-        turn++;
-        ChangePlayer();
-
-        if (piece is Pawn && (target.row == origin.row - 2 || target.row == origin.row + 2))
-            vulnerableEnPassant = piece;
-        else
-            vulnerableEnPassant = null;
     }
 
     public void ValideOriginPosition(Position position)

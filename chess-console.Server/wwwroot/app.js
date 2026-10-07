@@ -157,7 +157,7 @@ function renderPanel() {
 
 function describeState(board) {
     if (board.completed) {
-        if (board.draw) return 'Draw — 50 moves without a pawn move or capture.';
+        if (board.draw) return 'Draw.';
         return board.winner === state.myColor
             ? `Checkmate — you won as ${board.winner}.`
             : `Checkmate — victory for ${board.winner}.`;

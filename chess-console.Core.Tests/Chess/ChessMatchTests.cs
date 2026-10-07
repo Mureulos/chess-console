@@ -112,6 +112,48 @@ public class ChessMatchTests
         Assert.True(match.draw);
     }
 
+    [Fact]
+    public void MakeMove_CompletesTheMatchAsADrawOnTheThirdRepeatedPosition()
+    {
+        ChessMatch match = new();
+
+        Play(match, "g1f3");
+        Play(match, "g8f6");
+        Play(match, "f3g1");
+        Play(match, "f6g8");
+
+        Assert.False(match.completed);
+
+        Play(match, "g1f3");
+        Play(match, "g8f6");
+        Play(match, "f3g1");
+        Play(match, "f6g8");
+
+        Assert.True(match.completed);
+        Assert.True(match.draw);
+    }
+
+    [Fact]
+    public void Repetition_DoesNotIgnoreCastlingRights()
+    {
+        ChessMatch match = new();
+
+        Play(match, "e2e4");
+        Play(match, "b8c6");
+        Play(match, "f1c4");
+        Play(match, "c6b8");
+
+        for (int i = 0; i < 2; i++)
+        {
+            Play(match, "e1f1");
+            Play(match, "g8f6");
+            Play(match, "f1e1");
+            Play(match, "f6g8");
+        }
+
+        Assert.False(match.completed);
+    }
+
     // ---- Xeque ----
 
     [Fact]

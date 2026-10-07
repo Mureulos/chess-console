@@ -104,7 +104,7 @@ public class GameDisplay
         }
         else if (match.draw)
         {
-            Console.WriteLine("│ 🤝  DRAW (50 MOVES)      │");
+            Console.WriteLine("│ 🤝  DRAW                 │");
         }
         
         Console.WriteLine("└─────────────────────────┘");
