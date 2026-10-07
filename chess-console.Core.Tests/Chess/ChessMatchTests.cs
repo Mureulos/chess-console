@@ -18,6 +18,7 @@ public class ChessMatchTests
         Assert.Equal(Color.White, match.actualPlayerColor);
         Assert.Equal(0, match.moveCount);
         Assert.False(match.draw);
+        Assert.False(match.IsStalemate(Color.White));
         Assert.Equal(16, match.GetPiecesInGame(Color.White).Count);
         Assert.Equal(16, match.GetPiecesInGame(Color.Black).Count);
         Assert.IsType<King>(PieceAt(match, "e1"));

@@ -256,6 +256,7 @@ public class ChessMatch
             check = false;
 
         bool isCheckmate = IsInCheckmate(Opponent(actualPlayerColor));
+        bool isStalemate = IsStalemate(Opponent(actualPlayerColor));
 
         turn++;
         ChangePlayer();
@@ -271,6 +272,11 @@ public class ChessMatch
         {
             completed = true;
             draw = false;
+        }
+        else if (isStalemate)
+        {
+            completed = true;
+            draw = true;
         }
         else if (moveCount >= 100)
         {
@@ -436,6 +442,19 @@ public class ChessMatch
         if (!IsInCheck(color))
             return false;
 
+        return !HasLegalMove(color);
+    }
+
+    public bool IsStalemate(Color color)
+    {
+        if (IsInCheck(color))
+            return false;
+
+        return !HasLegalMove(color);
+    }
+
+    private bool HasLegalMove(Color color)
+    {
         foreach (var piece in GetPiecesInGame(color))
         {
             bool[,] matrix = piece.PossibleMoves();
@@ -453,12 +472,12 @@ public class ChessMatch
                         UndoMoviment(origin, target, caughtPiece);
 
                         if (!verifyCheck)
-                            return false;
+                            return true;
                     }
                 }
             }
         }
 
-        return true;
+        return false;
     }
 }
