@@ -9,6 +9,8 @@ namespace chess;
  * o jogador da vez e as informações sobre xeque ou fim da partida.*/
 public class ChessMatch
 {
+    private const int SeventyFiveMoveLimit = 150;
+
     public Board board { get; private set; }
     public int turn { get; private set; }
     public Color actualPlayerColor { get; private set; }
@@ -278,7 +280,7 @@ public class ChessMatch
             completed = true;
             draw = true;
         }
-        else if (moveCount >= 100)
+        else if (moveCount >= SeventyFiveMoveLimit)
         {
             completed = true;
             draw = true;

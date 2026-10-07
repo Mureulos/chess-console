@@ -96,19 +96,21 @@ public class ChessMatchTests
     }
 
     [Fact]
-    public void MakeMove_CompletesTheMatchAsADrawAfterFiftyMovesWithoutPawnMovesOrCaptures()
+    public void MakeMove_CompletesTheMatchAsADrawAfterSeventyFiveMovesWithoutPawnMovesOrCaptures()
     {
         ChessMatch match = new();
 
-        for (int i = 0; i < 25; i++)
+        for (int i = 0; i < 37; i++)
         {
             Play(match, "g1f3");
             Play(match, "b8c6");
             Play(match, "f3g1");
             Play(match, "c6b8");
         }
+        Play(match, "g1f3");
+        Play(match, "b8c6");
 
-        Assert.Equal(100, match.moveCount);
+        Assert.Equal(150, match.moveCount);
         Assert.True(match.completed);
         Assert.True(match.draw);
     }
