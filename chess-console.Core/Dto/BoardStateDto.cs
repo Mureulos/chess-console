@@ -8,6 +8,7 @@ public sealed record BoardStateDto(
     string CurrentPlayer,
     bool Check,
     bool Completed,
+    bool Draw,
     string? Winner,
     IReadOnlyList<PieceDto> CapturedWhitePieces,
     IReadOnlyList<PieceDto> CapturedBlackPieces);

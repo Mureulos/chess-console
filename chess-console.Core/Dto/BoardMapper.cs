@@ -18,9 +18,10 @@ public static class BoardMapper
             CurrentPlayer: match.actualPlayerColor.ToString(),
             Check: match.check,
             Completed: match.completed,
+            Draw: match.draw,
             // Em xeque-mate o ChessMatch já trocou de jogador, então quem leva é o
             // adversário da vez — a mesma conta que o Program.cs faz no fim do jogo.
-            Winner: match.completed ? match.Opponent(match.actualPlayerColor).ToString() : null,
+            Winner: match.completed && !match.draw ? match.Opponent(match.actualPlayerColor).ToString() : null,
             CapturedWhitePieces: ToDto(match.GetCapturedPieces(Color.White)),
             CapturedBlackPieces: ToDto(match.GetCapturedPieces(Color.Black)));
     }

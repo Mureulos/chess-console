@@ -18,6 +18,7 @@ public class BoardMapperTests
         Assert.Equal("White", state.CurrentPlayer);
         Assert.False(state.Check);
         Assert.False(state.Completed);
+        Assert.False(state.Draw);
         Assert.Null(state.Winner);
         Assert.Empty(state.CapturedWhitePieces);
         Assert.Empty(state.CapturedBlackPieces);

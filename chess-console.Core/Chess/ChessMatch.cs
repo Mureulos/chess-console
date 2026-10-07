@@ -14,6 +14,8 @@ public class ChessMatch
 
     public bool check { get; private set; }
     public bool completed { get; private set; }
+    public bool draw { get; private set; }
+    public int moveCount { get; private set; }
     private HashSet<Piece> _pieces;
     private HashSet<Piece> _capturedPieces;
     public Piece vulnerableEnPassant { get; private set; }
@@ -24,6 +26,8 @@ public class ChessMatch
         turn = 1;
         actualPlayerColor = Color.White;
         completed = false;
+        draw = false;
+        moveCount = 0;
         vulnerableEnPassant = null;
         _pieces = new HashSet<Piece>();
         _capturedPieces = new HashSet<Piece>();
@@ -135,6 +139,11 @@ public class ChessMatch
 
         Piece piece = board.piece(target);
 
+        if (piece is Pawn || caughtPiece is not null)
+            moveCount = 0;
+        else
+            moveCount++;
+
         // Só peão promove: "piece is Piece" era sempre verdadeiro e transformava em
         // dama qualquer peça que chegasse à última linha — inclusive o rei.
         if (piece is Pawn)
@@ -156,9 +165,20 @@ public class ChessMatch
             check = false;
 
         if (IsInCheckmate(Opponent(actualPlayerColor)))
+        {
             completed = true;
+            draw = false;
+        }
+        else if (moveCount >= 100)
+        {
+            completed = true;
+            draw = true;
+        }
         else
+        {
             completed = false;
+            draw = false;
+        }
 
         turn++;
         ChangePlayer();

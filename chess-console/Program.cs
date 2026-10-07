@@ -42,8 +42,9 @@ internal class Program
         display.DisplayFullGame(chessMatch);
         Console.WriteLine("╔════════════════════════╗");
         Console.WriteLine($"║ 🏁 GAME OVER!          ║");
-        Console.WriteLine($"║ Winner: {chessMatch.Opponent(chessMatch.actualPlayerColor),-8} ║");
+        Console.WriteLine(chessMatch.draw
+            ? "║ Result: Draw           ║"
+            : $"║ Winner: {chessMatch.Opponent(chessMatch.actualPlayerColor),-8} ║");
         Console.WriteLine("╚════════════════════════╝");
     }
 }
-

@@ -16,6 +16,8 @@ public class ChessMatchTests
 
         Assert.Equal(1, match.turn);
         Assert.Equal(Color.White, match.actualPlayerColor);
+        Assert.Equal(0, match.moveCount);
+        Assert.False(match.draw);
         Assert.Equal(16, match.GetPiecesInGame(Color.White).Count);
         Assert.Equal(16, match.GetPiecesInGame(Color.Black).Count);
         Assert.IsType<King>(PieceAt(match, "e1"));
@@ -66,6 +68,48 @@ public class ChessMatchTests
         Assert.IsType<Pawn>(Assert.Single(match.GetCapturedPieces(Color.Black)));
         Assert.Equal(15, match.GetPiecesInGame(Color.Black).Count);
         Assert.Equal(16, match.GetPiecesInGame(Color.White).Count);
+    }
+
+    [Fact]
+    public void MakeMove_IncrementsTheHalfmoveClockForNonPawnNonCaptureMoves()
+    {
+        ChessMatch match = Match("g1f3", "b8c6", "f3g1", "c6b8");
+
+        Assert.Equal(4, match.moveCount);
+        Assert.False(match.completed);
+    }
+
+    [Fact]
+    public void MakeMove_ResetsTheHalfmoveClockWhenAPawnMovesOrAPieceIsCaptured()
+    {
+        ChessMatch match = Match("g1f3", "b8c6", "f3g1", "c6b8", "e2e4");
+
+        Assert.Equal(0, match.moveCount);
+
+        Play(match, "e7e5");
+        Play(match, "g1f3");
+        Play(match, "b8c6");
+        Play(match, "f3e5");
+
+        Assert.Equal(0, match.moveCount);
+    }
+
+    [Fact]
+    public void MakeMove_CompletesTheMatchAsADrawAfterFiftyMovesWithoutPawnMovesOrCaptures()
+    {
+        ChessMatch match = new();
+
+        for (int i = 0; i < 25; i++)
+        {
+            Play(match, "g1f3");
+            Play(match, "b8c6");
+            Play(match, "f3g1");
+            Play(match, "c6b8");
+        }
+
+        Assert.Equal(100, match.moveCount);
+        Assert.True(match.completed);
+        Assert.True(match.draw);
     }
 
     // ---- Xeque ----
