@@ -1,12 +1,26 @@
 using System.Text.Json;
+using System.Threading.RateLimiting;
 using chess_console.Core.Matches;
 using chess_console.Server.Hubs;
 using chess_console.Server.Services;
+using Microsoft.AspNetCore.RateLimiting;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 const string CorsPolicyName = "Frontend";
 string[] allowedOrigins =
     builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+int rateLimitPermitLimit = GetPositiveSetting(
+    builder.Configuration,
+    "RateLimiting:SignalR:PermitLimit",
+    30);
+int rateLimitWindowSeconds = GetPositiveSetting(
+    builder.Configuration,
+    "RateLimiting:SignalR:WindowSeconds",
+    10);
+int rateLimitSegments = GetPositiveSetting(
+    builder.Configuration,
+    "RateLimiting:SignalR:SegmentsPerWindow",
+    2);
 
 builder.Services.AddCors(options =>
 {
@@ -30,6 +44,31 @@ builder.Services
     .AddJsonProtocol(options =>
         options.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+    {
+        bool isSignalRNegotiation =
+            httpContext.Request.Path.Equals("/hubs/chess/negotiate", StringComparison.OrdinalIgnoreCase)
+            && HttpMethods.IsPost(httpContext.Request.Method);
+
+        if (!isSignalRNegotiation)
+            return RateLimitPartition.GetNoLimiter("unlimited");
+
+        return RateLimitPartition.GetSlidingWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit = rateLimitPermitLimit,
+                Window = TimeSpan.FromSeconds(rateLimitWindowSeconds),
+                SegmentsPerWindow = rateLimitSegments,
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+            });
+    });
+});
+
 // Monolito: as partidas vivem no mesmo processo que serve o Hub.
 builder.Services.AddSingleton<IMatchRepository, InMemoryMatchRepository>();
 builder.Services.AddSingleton<MatchService>();
@@ -42,10 +81,20 @@ app.UseHttpsRedirection();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseCors(CorsPolicyName);
+app.UseRateLimiter();
 
 app.MapHub<ChessHub>("/hubs/chess");
 
 app.Run();
+
+static int GetPositiveSetting(IConfiguration configuration, string key, int defaultValue)
+{
+    int value = configuration.GetValue(key, defaultValue);
+    if (value <= 0)
+        throw new InvalidOperationException($"Configuration '{key}' must be greater than zero.");
+
+    return value;
+}
 
 // Necessário para o WebApplicationFactory dos testes de integração enxergar o host.
 public partial class Program;
