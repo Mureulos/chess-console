@@ -15,7 +15,10 @@
         </header>
 
         <section class="lobby" id="lobby">
-            <button type="button" id="create">New match</button>
+            <div class="lobby__actions">
+                <button type="button" id="create">New match</button>
+                <button type="button" class="btn-secondary" id="search-matches">Search matches</button>
+            </div>
 
             <form class="lobby__join" id="join-form">
                 <label for="match-id">Join a match</label>
@@ -93,6 +96,9 @@
                     <div class="swiper-pagination"></div>
                     <button type="button" class="btn-secondary panel__nav-button" id="panel-next" aria-label="Next slide">›</button>
                 </div>
+                <div class="panel__actions">
+                    <button type="button" class="btn-secondary" id="leave-match">Leave match</button>
+                </div>
             </aside>
         </section>
     </main>
@@ -103,6 +109,15 @@
             <p>Your match is ready. Share the link with a player to start the game.</p>
             <p class="waiting-dialog__countdown" id="waiting-countdown" aria-live="polite">2:00</p>
             <button type="button" id="share-link">Share link</button>
+        </div>
+    </dialog>
+
+    <dialog id="search-dialog" class="search-dialog">
+        <div class="search-dialog__content">
+            <h2>Available matches</h2>
+            <p id="search-empty">No matches are waiting for an opponent.</p>
+            <ul id="search-results" class="search-results"></ul>
+            <button type="button" class="btn-secondary" id="search-close">Close</button>
         </div>
     </dialog>
 

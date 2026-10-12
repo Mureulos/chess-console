@@ -6,6 +6,8 @@ let waitingTimer;
 
 export function registerUiEvents({
     enterMatch,
+    searchMatches,
+    leaveMatch,
     onSquareClick,
     setZoom,
     offerSideSwap,
@@ -14,6 +16,11 @@ export function registerUiEvents({
     ui.create.addEventListener('click', () => {
         ui.matchIdInput.value = '';
         enterMatch('CreateMatch');
+    });
+
+    ui.searchMatches.addEventListener('click', async () => {
+        const matches = await searchMatches();
+        openSearchDialog(matches, matchId => enterMatch('JoinMatch', matchId));
     });
 
     ui.joinForm.addEventListener('submit', event => {
@@ -80,6 +87,32 @@ export function registerUiEvents({
         ui.swapDialog.close();
         respondToSideSwap(false);
     });
+
+    ui.leaveMatch.addEventListener('click', leaveMatch);
+    ui.searchClose.addEventListener('click', () => ui.searchDialog.close());
+}
+
+export function openSearchDialog(matchIds, onJoin) {
+    ui.searchResults.replaceChildren();
+    ui.searchEmpty.hidden = matchIds.length > 0;
+
+    for (const matchId of matchIds) {
+        const item = document.createElement('li');
+        const label = document.createElement('code');
+        const joinButton = document.createElement('button');
+
+        label.textContent = matchId;
+        joinButton.type = 'button';
+        joinButton.textContent = 'Join';
+        joinButton.addEventListener('click', () => {
+            ui.searchDialog.close();
+            onJoin(matchId);
+        });
+        item.append(label, joinButton);
+        ui.searchResults.append(item);
+    }
+
+    ui.searchDialog.showModal();
 }
 
 export function openSwapDialog(message, mode) {

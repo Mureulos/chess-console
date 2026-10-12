@@ -52,6 +52,18 @@ public sealed class ChessHub : Hub
             return match;
         });
 
+    public Task<Guid[]> GetWaitingMatches() =>
+        Task.FromResult(_matches.GetWaitingMatchIds());
+
+    public async Task<bool> LeaveMatch(Guid matchId)
+    {
+        if (!await _matches.LeaveAsync(matchId, Context.ConnectionId))
+            return false;
+
+        await Clients.OthersInGroup(GroupOf(matchId)).SendAsync(OpponentLeftEvent);
+        return true;
+    }
+
     public async Task<bool> ExpireWaitingMatch(Guid matchId)
     {
         try

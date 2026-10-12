@@ -6,6 +6,7 @@ export const ui = {
     lobby: $('lobby'),
     game: $('game'),
     create: $('create'),
+    searchMatches: $('search-matches'),
     joinForm: $('join-form'),
     joinButton: document.querySelector('#join-form button'),
     matchIdInput: $('match-id'),
@@ -24,6 +25,11 @@ export const ui = {
     waitingDialog: $('waiting-dialog'),
     waitingCountdown: $('waiting-countdown'),
     shareLink: $('share-link'),
+    searchDialog: $('search-dialog'),
+    searchEmpty: $('search-empty'),
+    searchResults: $('search-results'),
+    searchClose: $('search-close'),
+    leaveMatch: $('leave-match'),
     swapButton: $('swap-sides'),
     swapDialog: $('swap-dialog'),
     swapDialogTitle: $('swap-dialog-title'),
@@ -51,5 +57,6 @@ export function setConnectionState(value, label) {
     ui.panelConnection.dataset.state = value;
     ui.panelConnection.textContent = label;
     ui.create.disabled = !connected;
+    ui.searchMatches.disabled = !connected;
     ui.joinButton.disabled = !connected;
 }

@@ -28,6 +28,12 @@ public sealed class MatchService
     public Task<MatchJoinedDto> JoinAsync(Guid matchId, string connectionId, CancellationToken cancellationToken = default) =>
         TakeSeatAsync(Require(matchId), connectionId, cancellationToken);
 
+    public Guid[] GetWaitingMatchIds() =>
+        _repository.GetWaitingForOpponent()
+            .OrderBy(session => session.CreatedAtUtc)
+            .Select(session => session.Id)
+            .ToArray();
+
     public async Task<bool> ExpireWaitingAsync(
         Guid matchId,
         string connectionId,
@@ -164,6 +170,19 @@ public sealed class MatchService
             _repository.Remove(session.Id);
 
         return session.Id;
+    }
+
+    public async Task<bool> LeaveAsync(
+        Guid matchId,
+        string connectionId,
+        CancellationToken cancellationToken = default)
+    {
+        GameSession? session = _repository.FindByConnection(connectionId);
+
+        if (session?.Id != matchId)
+            return false;
+
+        return await LeaveAsync(connectionId, cancellationToken) == matchId;
     }
 
     private static Task<MatchJoinedDto> TakeSeatAsync(

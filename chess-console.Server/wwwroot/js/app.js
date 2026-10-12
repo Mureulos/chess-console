@@ -5,6 +5,8 @@ import { setZoom } from './render.js';
 import {
     connection,
     enterMatch,
+    searchMatches,
+    leaveMatch,
     onSquareClick,
     registerConnectionEvents,
     offerSideSwap,
@@ -16,6 +18,8 @@ registerConnectionEvents();
 
 registerUiEvents({
     enterMatch,
+    searchMatches,
+    leaveMatch,
     onSquareClick,
     setZoom,
     offerSideSwap,

@@ -36,6 +36,50 @@ public class ChessHubTests : IClassFixture<ChessServerFixture>
     }
 
     [Fact]
+    public async Task GetWaitingMatches_ReturnsOnlyMatchesWaitingForAnOpponent()
+    {
+        await using HubConnection player = _server.CreateConnection();
+        await using HubConnection opponent = _server.CreateConnection();
+
+        await player.StartAsync();
+        await opponent.StartAsync();
+
+        MatchJoinedDto waiting = await InvokeAsync<MatchJoinedDto>(
+            player, nameof(ChessHub.CreateMatch));
+        MatchJoinedDto full = await InvokeAsync<MatchJoinedDto>(
+            opponent, nameof(ChessHub.CreateMatch));
+        await InvokeAsync<MatchJoinedDto>(
+            player, nameof(ChessHub.JoinMatch), full.MatchId);
+
+        Guid[] available = await player.InvokeAsync<Guid[]>(
+            nameof(ChessHub.GetWaitingMatches));
+
+        Assert.Contains(waiting.MatchId, available);
+        Assert.DoesNotContain(full.MatchId, available);
+    }
+
+    [Fact]
+    public async Task LeaveMatch_ReleasesTheSeatAndNotifiesTheOpponent()
+    {
+        await using HubConnection white = _server.CreateConnection();
+        await using HubConnection black = _server.CreateConnection();
+
+        Task opponentLeft = NextEventAsync(black, ChessHub.OpponentLeftEvent);
+        Guid matchId = await StartMatchAsync(white, black);
+
+        Assert.True(await white.InvokeAsync<bool>(
+            nameof(ChessHub.LeaveMatch), matchId));
+        await opponentLeft;
+
+        await using HubConnection replacement = _server.CreateConnection();
+        await replacement.StartAsync();
+        MatchJoinedDto joined = await InvokeAsync<MatchJoinedDto>(
+            replacement, nameof(ChessHub.JoinMatch), matchId);
+
+        Assert.Equal("White", joined.Color);
+    }
+
+    [Fact]
     public async Task MakeMove_BroadcastsTheNewStateToBothPlayers()
     {
         await using HubConnection white = _server.CreateConnection();

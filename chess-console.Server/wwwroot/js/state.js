@@ -15,6 +15,9 @@ export const ZOOM = {
     step: 0.1
 };
 
+export const ZOOM_STORAGE_KEY = 'chess-console.zoom';
+const storedZoom = Number.parseFloat(localStorage.getItem(ZOOM_STORAGE_KEY));
+
 export const state = {
     matchId: null,
     myColor: null,
@@ -24,7 +27,7 @@ export const state = {
     lastMove: null,
     moveHistory: [],
     opponentPresent: false,
-    zoom: 1
+    zoom: Number.isFinite(storedZoom) ? storedZoom : 1
 };
 
 export function glyphOf(piece) {

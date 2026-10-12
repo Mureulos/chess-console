@@ -46,6 +46,38 @@ export async function enterMatch(method, matchId) {
     }
 }
 
+export async function searchMatches() {
+    return await connection.invoke('GetWaitingMatches');
+}
+
+export async function leaveMatch() {
+    if (!state.matchId) {
+        return;
+    }
+
+    const left = await connection.invoke('LeaveMatch', state.matchId);
+
+    if (!left) {
+        say('Could not leave the match.', 'error');
+        return;
+    }
+
+    closeWaitingDialog();
+    Object.assign(state, {
+        matchId: null,
+        myColor: null,
+        board: null,
+        opponentPresent: false,
+        lastMove: null,
+        moveHistory: []
+    });
+    clearSelection();
+    location.hash = '';
+    ui.game.hidden = true;
+    ui.lobby.hidden = false;
+    say('You left the match.');
+}
+
 async function expireWaitingMatch() {
     const expired = await connection.invoke(
         'ExpireWaitingMatch',

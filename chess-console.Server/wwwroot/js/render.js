@@ -3,6 +3,7 @@ import { updateGameSwiper } from './swiper-ui.js';
 import {
     FILES,
     ZOOM,
+    ZOOM_STORAGE_KEY,
     state,
     glyphOf,
     pieceAt,
@@ -129,6 +130,7 @@ export function setZoom(value) {
     const rounded = Math.round(value * 10) / 10;
 
     state.zoom = Math.min(ZOOM.max, Math.max(ZOOM.min, rounded));
+    localStorage.setItem(ZOOM_STORAGE_KEY, String(state.zoom));
 
     ui.boardArea.style.setProperty('--zoom', state.zoom);
     ui.zoomLevel.textContent = `${Math.round(state.zoom * 100)}%`;
