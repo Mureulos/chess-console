@@ -1,5 +1,5 @@
 import { ui, say, setConnectionState } from './dom.js';
-import { openSwapDialog } from './ui.js';
+import { closeWaitingDialog, openSwapDialog, openWaitingDialog } from './ui.js';
 import { clearSelection, isMyTurn, pieceAt, state } from './state.js';
 import { buildBoard, render } from './render.js';
 import { initializeGameSwiper } from './swiper-ui.js';
@@ -38,9 +38,33 @@ export async function enterMatch(method, matchId) {
     render();
     initializeGameSwiper();
 
-    say(joining
-        ? `You play as ${match.color}.`
-        : 'Match created. Share the link or ID for the opponent to join.');
+    if (joining) {
+        say(`You play as ${match.color}.`);
+    } else if (!state.opponentPresent) {
+        say('Match created. Waiting for another player.');
+        openWaitingDialog(expireWaitingMatch);
+    }
+}
+
+async function expireWaitingMatch() {
+    const expired = await connection.invoke(
+        'ExpireWaitingMatch',
+        state.matchId
+    );
+
+    if (!expired) {
+        return;
+    }
+
+    closeWaitingDialog();
+    state.matchId = null;
+    state.myColor = null;
+    state.board = null;
+    state.opponentPresent = false;
+    location.hash = '';
+    ui.game.hidden = true;
+    ui.lobby.hidden = false;
+    say('The match expired because no opponent joined.', 'error');
 }
 
 export async function onSquareClick(square) {
@@ -163,6 +187,7 @@ export function registerConnectionEvents() {
 
     connection.on('OpponentJoined', color => {
         state.opponentPresent = true;
+        closeWaitingDialog();
         say(`Opponent joined as ${color}.`);
         render();
     });
@@ -170,6 +195,9 @@ export function registerConnectionEvents() {
     connection.on('OpponentLeft', () => {
         state.opponentPresent = false;
         say('Opponent left the match.');
+        if (!state.board?.completed) {
+            openWaitingDialog(expireWaitingMatch);
+        }
         render();
     });
 

@@ -453,7 +453,8 @@ button {
         color: var(--muted);
     }
 
-    .swap-dialog {
+.waiting-dialog,
+.swap-dialog {
         max-width: 340px;
         padding: 0;
         color: var(--text);
@@ -462,10 +463,12 @@ button {
         border-radius: 10px;
     }
 
-        .swap-dialog::backdrop {
+.waiting-dialog::backdrop,
+.swap-dialog::backdrop {
             background: rgba(0, 0, 0, .65);
         }
 
+.waiting-dialog__content,
     .swap-dialog__content {
         display: flex;
         flex-direction: column;
@@ -473,14 +476,28 @@ button {
         padding: 24px;
     }
 
-        .swap-dialog__content h2,
-        .swap-dialog__content p {
+.waiting-dialog__content h2,
+.waiting-dialog__content p,
+    .swap-dialog__content h2,
+    .swap-dialog__content p {
             margin: 0;
         }
 
+.waiting-dialog__content h2,
     .swap-dialog__content h2 {
         font-size: 18px;
     }
+
+.waiting-dialog__content button {
+    align-self: flex-end;
+}
+
+.waiting-dialog__countdown {
+    font-size: 28px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    text-align: center;
+}
 
     .swap-dialog__actions {
         display: flex;

@@ -52,6 +52,19 @@ public sealed class ChessHub : Hub
             return match;
         });
 
+    public async Task<bool> ExpireWaitingMatch(Guid matchId)
+    {
+        try
+        {
+            return await _matches.ExpireWaitingAsync(matchId, Context.ConnectionId);
+        }
+        catch (BoardException e)
+        {
+            await Clients.Caller.SendAsync(ErrorEvent, e.Message);
+            return false;
+        }
+    }
+
     // Retorna dados ao chamador
     public Task<BoardStateDto?> GetBoardState(Guid matchId) =>
         GuardAsync(() => _matches.GetStateAsync(matchId));

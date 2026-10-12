@@ -21,6 +21,8 @@ export const ui = {
     capturedBlack: $('captured-black'),
     connectionMatchLabel: $('connection-match-label'),
     moveHistory: $('move-history'),
+    waitingDialog: $('waiting-dialog'),
+    waitingCountdown: $('waiting-countdown'),
     shareLink: $('share-link'),
     swapButton: $('swap-sides'),
     swapDialog: $('swap-dialog'),

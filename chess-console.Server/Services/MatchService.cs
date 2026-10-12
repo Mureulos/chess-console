@@ -28,6 +28,27 @@ public sealed class MatchService
     public Task<MatchJoinedDto> JoinAsync(Guid matchId, string connectionId, CancellationToken cancellationToken = default) =>
         TakeSeatAsync(Require(matchId), connectionId, cancellationToken);
 
+    public async Task<bool> ExpireWaitingAsync(
+        Guid matchId,
+        string connectionId,
+        CancellationToken cancellationToken = default)
+    {
+        GameSession session = Require(matchId);
+        bool expired = await session.ExecuteAsync(current =>
+        {
+            if (!current.IsWaitingForOpponent || !current.IsSeated(connectionId))
+                return false;
+
+            current.ReleaseSeat(connectionId);
+            return true;
+        }, cancellationToken);
+
+        if (expired)
+            _repository.Remove(session.Id);
+
+        return expired;
+    }
+
     // Entra no lock da sessão e transforma o ChessMatch em BoardStateDto.
     public Task<BoardStateDto> GetStateAsync(Guid matchId, CancellationToken cancellationToken = default) =>
         Require(matchId).ExecuteAsync(session => BoardMapper.ToDto(session.Match), cancellationToken);

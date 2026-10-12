@@ -60,6 +60,30 @@ public class MatchServiceTests
     }
 
     [Fact]
+    public async Task ExpireWaitingAsync_RemovesMatchWhenTheOnlyPlayerTimesOut()
+    {
+        IMatchRepository repository = new InMemoryMatchRepository();
+        MatchService service = new(repository);
+        MatchJoinedDto created = await service.CreateAsync(White);
+
+        Assert.True(await service.ExpireWaitingAsync(created.MatchId, White));
+        Assert.Equal(0, repository.Count);
+        Assert.Null(repository.Get(created.MatchId));
+    }
+
+    [Fact]
+    public async Task ExpireWaitingAsync_DoesNotRemoveMatchAfterAnOpponentJoins()
+    {
+        IMatchRepository repository = new InMemoryMatchRepository();
+        MatchService service = new(repository);
+        MatchJoinedDto created = await service.CreateAsync(White);
+        await service.JoinAsync(created.MatchId, Black);
+
+        Assert.False(await service.ExpireWaitingAsync(created.MatchId, White));
+        Assert.NotNull(repository.Get(created.MatchId));
+    }
+
+    [Fact]
     public async Task MakeMoveAsync_AppliesTheMoveAndReportsTheNewState()
     {
         MatchService service = NewService();

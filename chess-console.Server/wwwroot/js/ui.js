@@ -1,6 +1,9 @@
 import { ui, say } from './dom.js';
 import { state, ZOOM } from './state.js';
 
+const WAITING_TIME_SECONDS = 2 * 60;
+let waitingTimer;
+
 export function registerUiEvents({
     enterMatch,
     onSquareClick,
@@ -89,4 +92,42 @@ export function openSwapDialog(message, mode) {
     ui.swapDecline.hidden = mode !== 'response';
     ui.swapCancel.hidden = mode === 'response';
     ui.swapDialog.showModal();
+}
+
+export function openWaitingDialog(onTimeout) {
+    clearWaitingTimer();
+    updateWaitingCountdown(WAITING_TIME_SECONDS);
+    ui.waitingDialog.showModal();
+
+    let remaining = WAITING_TIME_SECONDS;
+    waitingTimer = setInterval(() => {
+        remaining -= 1;
+        updateWaitingCountdown(remaining);
+
+        if (remaining === 0) {
+            clearWaitingTimer();
+            onTimeout();
+        }
+    }, 1000);
+}
+
+export function closeWaitingDialog() {
+    clearWaitingTimer();
+
+    if (ui.waitingDialog.open) {
+        ui.waitingDialog.close();
+    }
+}
+
+function clearWaitingTimer() {
+    if (waitingTimer) {
+        clearInterval(waitingTimer);
+        waitingTimer = undefined;
+    }
+}
+
+function updateWaitingCountdown(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = String(seconds % 60).padStart(2, '0');
+    ui.waitingCountdown.textContent = `${minutes}:${remainingSeconds}`;
 }

@@ -115,7 +115,7 @@ function describeState(board) {
     }
 
     if (!state.opponentPresent) {
-        return '<span class="spinner"></span> Waiting for opponent...';
+        return '<span class="spinner"></span> Waiting opponents';
     }
 
     if (board.check) {
