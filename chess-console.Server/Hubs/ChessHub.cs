@@ -16,6 +16,9 @@ public sealed class ChessHub : Hub
     public const string ErrorEvent = "ReceiveError";
     public const string OpponentJoinedEvent = "OpponentJoined";
     public const string OpponentLeftEvent = "OpponentLeft";
+    public const string SideSwapRequestedEvent = "SideSwapRequested";
+    public const string SideSwapDeclinedEvent = "SideSwapDeclined";
+    public const string SideSwapAcceptedEvent = "SideSwapAccepted";
 
     private readonly MatchService _matches;
 
@@ -62,6 +65,34 @@ public sealed class ChessHub : Hub
 
     public Task MakeMoveWithPromotion(Guid matchId, string origin, string target, string promotion) =>
         MakeMoveCore(matchId, origin, target, promotion);
+
+    public async Task OfferSideSwap(Guid matchId)
+    {
+        string? targetConnectionId = await GuardAsync(
+            () => _matches.OfferSideSwapAsync(matchId, Context.ConnectionId));
+
+        if (targetConnectionId is not null)
+            await Clients.Client(targetConnectionId).SendAsync(SideSwapRequestedEvent);
+    }
+
+    public async Task RespondToSideSwap(Guid matchId, bool accepted)
+    {
+        SideSwapResult? result = await GuardAsync(
+            () => _matches.RespondToSideSwapAsync(matchId, Context.ConnectionId, accepted));
+
+        if (result is null)
+            return;
+
+        if (!result.Accepted)
+        {
+            await Clients.Client(result.RequesterConnectionId).SendAsync(SideSwapDeclinedEvent);
+            return;
+        }
+
+        await Clients.Client(result.RequesterConnectionId)
+            .SendAsync(SideSwapAcceptedEvent, result.RequesterColor);
+        await Clients.Caller.SendAsync(SideSwapAcceptedEvent, result.ResponderColor);
+    }
 
     private async Task MakeMoveCore(Guid matchId, string origin, string target, string? promotion)
     {

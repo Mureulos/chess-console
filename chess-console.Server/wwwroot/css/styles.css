@@ -192,6 +192,13 @@ button {
         font-variant-numeric: tabular-nums;
     }
 
+.game__actions {
+    display: flex;
+    justify-content: center;
+    min-height: 38px;
+    margin-top: 12px;
+}
+
 /* ===== Casas (a ordem define a prioridade das cores) ===== */
 
 .square {
@@ -446,7 +453,42 @@ button {
         color: var(--muted);
     }
 
-/* ===== Responsivo ===== */
+    .swap-dialog {
+        max-width: 340px;
+        padding: 0;
+        color: var(--text);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+    }
+
+        .swap-dialog::backdrop {
+            background: rgba(0, 0, 0, .65);
+        }
+
+    .swap-dialog__content {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        padding: 24px;
+    }
+
+        .swap-dialog__content h2,
+        .swap-dialog__content p {
+            margin: 0;
+        }
+
+    .swap-dialog__content h2 {
+        font-size: 18px;
+    }
+
+    .swap-dialog__actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    /* ===== Responsivo ===== */
 
 @media (max-width: 760px) {
     .game {

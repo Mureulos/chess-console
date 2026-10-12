@@ -7,6 +7,7 @@ import {
     glyphOf,
     pieceAt,
     isMyTurn,
+    canOfferSideSwap,
     isLightSquare
 } from './state.js';
 
@@ -65,16 +66,17 @@ export function render() {
 
 function renderPanel() {
     const board = state.board;
-    const glyphs = pieces => pieces.map(glyphOf).join('') || '—';
+    const glyphs = pieces => pieces.map(glyphOf).join('') || 'ï¿½';
 
     ui.matchLabel.textContent = state.matchId;
     ui.connectionMatchLabel.textContent = state.matchId;
-    ui.myColor.textContent = state.myColor ?? '—';
+    ui.myColor.textContent = state.myColor ?? 'ï¿½';
     ui.turn.textContent = board.turn;
     ui.currentPlayer.textContent = board.currentPlayer;
     ui.capturedWhite.textContent = glyphs(board.capturedWhitePieces);
     ui.capturedBlack.textContent = glyphs(board.capturedBlackPieces);
     ui.gameState.innerHTML = describeState(board);
+    ui.swapButton.hidden = !canOfferSideSwap();
     renderMoveHistory();
     updateGameSwiper();
 }
@@ -108,8 +110,8 @@ function describeState(board) {
         }
 
         return board.winner === state.myColor
-            ? `Checkmate — you won as ${board.winner}.`
-            : `Checkmate — victory for ${board.winner}.`;
+            ? `Checkmate ï¿½ you won as ${board.winner}.`
+            : `Checkmate ï¿½ victory for ${board.winner}.`;
     }
 
     if (!state.opponentPresent) {

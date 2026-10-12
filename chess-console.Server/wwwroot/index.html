@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Real-time Chess</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <main class="app">
@@ -34,6 +34,9 @@
                     <button type="button" class="btn-secondary" id="zoom-out" aria-label="Zoom out">−</button>
                     <span id="zoom-level" aria-live="polite">100%</span>
                     <button type="button" class="btn-secondary" id="zoom-in" aria-label="Zoom in">+</button>
+                </div>
+                <div class="game__actions">
+                    <button type="button" id="swap-sides" class="btn-secondary" hidden>Offer side swap</button>
                 </div>
             </div>
 
@@ -96,8 +99,21 @@
         </section>
     </main>
 
+    <dialog id="swap-dialog" class="swap-dialog">
+        <form method="dialog" class="swap-dialog__content">
+            <h2 id="swap-dialog-title">Swap sides</h2>
+            <p id="swap-dialog-message"></p>
+            <div class="swap-dialog__actions">
+                <button type="button" id="swap-cancel" class="btn-secondary">Cancel</button>
+                <button type="button" id="swap-decline" class="btn-secondary" hidden>Decline</button>
+                <button type="button" id="swap-accept" hidden>Accept</button>
+                <button type="button" id="swap-confirm">Send offer</button>
+            </div>
+        </form>
+    </dialog>
+
     <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@9/dist/browser/signalr.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script type="module" src="app.js"></script>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>

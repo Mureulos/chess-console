@@ -44,6 +44,13 @@ export function isMyTurn() {
         && board.currentPlayer === state.myColor;
 }
 
+export function canOfferSideSwap() {
+    return Boolean(state.board)
+        && state.opponentPresent
+        && !state.board.completed
+        && state.moveHistory.length === 0;
+}
+
 export function isLightSquare(file, rank) {
     return (FILES.indexOf(file) + rank) % 2 === 0;
 }

@@ -1,4 +1,5 @@
 import { ui, say, setConnectionState } from './dom.js';
+import { openSwapDialog } from './ui.js';
 import { clearSelection, isMyTurn, pieceAt, state } from './state.js';
 import { buildBoard, render } from './render.js';
 import { initializeGameSwiper } from './swiper-ui.js';
@@ -29,6 +30,7 @@ export async function enterMatch(method, matchId) {
     clearSelection();
 
     location.hash = match.matchId;
+    ui.matchIdInput.value = '';
     ui.lobby.hidden = true;
     ui.game.hidden = false;
 
@@ -91,6 +93,15 @@ export async function onSquareClick(square) {
     }
 
     render();
+}
+
+export async function offerSideSwap() {
+    await connection.invoke('OfferSideSwap', state.matchId);
+    say('Side swap offer sent.');
+}
+
+export async function respondToSideSwap(accepted) {
+    await connection.invoke('RespondToSideSwap', state.matchId, accepted);
 }
 
 function promotionChoice(piece, square) {
@@ -160,5 +171,20 @@ export function registerConnectionEvents() {
         state.opponentPresent = false;
         say('Opponent left the match.');
         render();
+    });
+
+    connection.on('SideSwapRequested', () => {
+        openSwapDialog('Your opponent wants to swap sides.', 'response');
+    });
+
+    connection.on('SideSwapDeclined', () => {
+        say('Your opponent declined the side swap.');
+    });
+
+    connection.on('SideSwapAccepted', color => {
+        state.myColor = color;
+        buildBoard();
+        render();
+        say(`Sides swapped. You play as ${color}.`);
     });
 }

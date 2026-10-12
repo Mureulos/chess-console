@@ -57,6 +57,25 @@ public class ChessHubTests : IClassFixture<ChessServerFixture>
         }
     }
 
+    [Fact]
+    public async Task SideSwap_RequestsApprovalAndBroadcastsTheNewColors()
+    {
+        await using HubConnection white = _server.CreateConnection();
+        await using HubConnection black = _server.CreateConnection();
+
+        Task requested = NextEventAsync(black, ChessHub.SideSwapRequestedEvent);
+        Task<string> whiteResult = NextEventAsync<string>(white, ChessHub.SideSwapAcceptedEvent);
+        Task<string> blackResult = NextEventAsync<string>(black, ChessHub.SideSwapAcceptedEvent);
+
+        Guid matchId = await StartMatchAsync(white, black);
+        await white.InvokeAsync(nameof(ChessHub.OfferSideSwap), matchId);
+        await requested;
+        await black.InvokeAsync(nameof(ChessHub.RespondToSideSwap), matchId, true);
+
+        Assert.Equal("Black", await whiteResult);
+        Assert.Equal("White", await blackResult);
+    }
+
     // Sem amarrar a conexão à cor, o preto conseguiria jogar na vez do branco.
     [Fact]
     public async Task MakeMove_OutOfTurn_SendsReceiveErrorAndLeavesTheBoardUntouched()

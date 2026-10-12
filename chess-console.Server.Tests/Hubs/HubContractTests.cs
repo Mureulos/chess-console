@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace chess_console.Server.Tests.Hubs;
 
-// O front em wwwroot/app.js é JavaScript e não compila junto: estes testes seguram o
+// O front em wwwroot/js/app.js é JavaScript e não compila junto: estes testes seguram o
 // contrato que ele assume, que o compilador não tem como verificar.
 public class HubContractTests : IClassFixture<ChessServerFixture>
 {
@@ -37,8 +37,8 @@ public class HubContractTests : IClassFixture<ChessServerFixture>
 
     [Theory]
     [InlineData("/", "text/html")]
-    [InlineData("/app.js", "text/javascript")]
-    [InlineData("/styles.css", "text/css")]
+    [InlineData("/js/app.js", "text/javascript")]
+    [InlineData("/css/styles.css", "text/css")]
     public async Task TheSameProcessServesTheFrontEnd(string path, string contentType)
     {
         using HttpClient client = _server.CreateClient();

@@ -68,6 +68,48 @@ public sealed class MatchService
             return BoardMapper.ToMoveResult(session.Match, from, to);
         }, cancellationToken);
 
+    public Task<string> OfferSideSwapAsync(
+        Guid matchId,
+        string connectionId,
+        CancellationToken cancellationToken = default) =>
+        Require(matchId).ExecuteAsync(session =>
+        {
+            EnsureCanSwapSides(session, connectionId);
+
+            if (session.HasPendingSideSwap)
+                throw new BoardException("A side swap offer is already pending");
+
+            if (!session.TryOfferSideSwap(connectionId, out string targetConnectionId))
+                throw new BoardException("Unable to offer a side swap");
+
+            return targetConnectionId;
+        }, cancellationToken);
+
+    public Task<SideSwapResult> RespondToSideSwapAsync(
+        Guid matchId,
+        string connectionId,
+        bool accepted,
+        CancellationToken cancellationToken = default) =>
+        Require(matchId).ExecuteAsync(session =>
+        {
+            EnsureCanSwapSides(session, connectionId);
+
+            if (!session.TryRespondToSideSwap(connectionId, accepted, out string requesterConnectionId))
+                throw new BoardException("No side swap offer is pending for you");
+
+            Color requesterColor = session.ColorOf(requesterConnectionId)
+                ?? throw new BoardException("Side swap participants are no longer in the match");
+            Color responderColor = session.ColorOf(connectionId)
+                ?? throw new BoardException("Side swap participants are no longer in the match");
+
+            return new SideSwapResult(
+                requesterConnectionId,
+                connectionId,
+                accepted,
+                requesterColor.ToString(),
+                responderColor.ToString());
+        }, cancellationToken);
+
     private static PromotionPiece? ParsePromotion(string? promotion)
     {
         if (promotion is null)
@@ -132,4 +174,26 @@ public sealed class MatchService
         if (!session.IsTurnOf(connectionId))
             throw new BoardException("It is not your turn");
     }
+
+    private static void EnsureCanSwapSides(GameSession session, string connectionId)
+    {
+        if (!session.IsSeated(connectionId))
+            throw new BoardException("You are not playing this match");
+
+        if (!session.IsFull)
+            throw new BoardException("Waiting for the opponent to join");
+
+        if (session.Match.completed)
+            throw new BoardException("This match is already over");
+
+        if (session.Match.MoveHistory.Count > 0)
+            throw new BoardException("Side swapping is only available before the first move");
+    }
 }
+
+public sealed record SideSwapResult(
+    string RequesterConnectionId,
+    string ResponderConnectionId,
+    bool Accepted,
+    string RequesterColor,
+    string ResponderColor);

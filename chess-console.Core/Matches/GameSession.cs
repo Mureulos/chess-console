@@ -11,6 +11,8 @@ public sealed class GameSession
     // não é. Não descartar evita que remover a partida do repositório quebre uma
     // operação que ainda está em voo segurando o lock.
     private readonly SemaphoreSlim _gate = new(1, 1);
+    private string? _sideSwapRequester;
+    private string? _sideSwapTarget;
 
     public GameSession() : this(Guid.NewGuid(), new ChessMatch())
     {
@@ -44,6 +46,8 @@ public sealed class GameSession
     public bool IsWaitingForOpponent => !IsEmpty && !IsFull;
 
     public bool IsFinished => Match.completed;
+
+    public bool HasPendingSideSwap => _sideSwapRequester is not null;
 
     public Color? ColorOf(string? connectionId)
     {
@@ -113,7 +117,61 @@ public sealed class GameSession
         else
             BlackConnectionId = null;
 
+        if (connectionId == _sideSwapRequester || connectionId == _sideSwapTarget)
+            ClearSideSwap();
+
         return true;
+    }
+
+    public bool TryOfferSideSwap(string connectionId, out string targetConnectionId)
+    {
+        EnsureLocked();
+        ArgumentException.ThrowIfNullOrEmpty(connectionId);
+
+        if (!IsFull || Match.MoveHistory.Count > 0)
+        {
+            targetConnectionId = string.Empty;
+            return false;
+        }
+
+        if (HasPendingSideSwap)
+        {
+            targetConnectionId = string.Empty;
+            return false;
+        }
+
+        targetConnectionId = connectionId == WhiteConnectionId
+            ? BlackConnectionId!
+            : WhiteConnectionId!;
+        _sideSwapRequester = connectionId;
+        _sideSwapTarget = targetConnectionId;
+        return true;
+    }
+
+    public bool TryRespondToSideSwap(string connectionId, bool accepted, out string requesterConnectionId)
+    {
+        EnsureLocked();
+        ArgumentException.ThrowIfNullOrEmpty(connectionId);
+
+        if (_sideSwapRequester is null || connectionId != _sideSwapTarget)
+        {
+            requesterConnectionId = string.Empty;
+            return false;
+        }
+
+        requesterConnectionId = _sideSwapRequester;
+
+        if (accepted)
+            (WhiteConnectionId, BlackConnectionId) = (BlackConnectionId, WhiteConnectionId);
+
+        ClearSideSwap();
+        return true;
+    }
+
+    private void ClearSideSwap()
+    {
+        _sideSwapRequester = null;
+        _sideSwapTarget = null;
     }
 
     /* Executa uma operação que precisa acessar ou alterar a sessão e retorna um resultado.

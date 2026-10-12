@@ -6,7 +6,9 @@ import {
     connection,
     enterMatch,
     onSquareClick,
-    registerConnectionEvents
+    registerConnectionEvents,
+    offerSideSwap,
+    respondToSideSwap
 } from './connection.js';
 import { registerUiEvents } from './ui.js';
 
@@ -15,7 +17,9 @@ registerConnectionEvents();
 registerUiEvents({
     enterMatch,
     onSquareClick,
-    setZoom
+    setZoom,
+    offerSideSwap,
+    respondToSideSwap
 });
 
 setConnectionState('connecting', 'connecting...');
@@ -26,7 +30,13 @@ if (location.hash.length > 1) {
 }
 
 connection.start()
-    .then(() => setConnectionState('connected', 'connected'))
+    .then(async () => {
+        setConnectionState('connected', 'connected');
+
+        if (location.hash.length > 1) {
+            await enterMatch('JoinMatch', decodeURIComponent(location.hash.slice(1)));
+        }
+    })
     .catch(error => {
         setConnectionState('disconnected', 'failed to connect');
         say(String(error), 'error');

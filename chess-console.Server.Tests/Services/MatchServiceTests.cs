@@ -75,6 +75,51 @@ public class MatchServiceTests
     }
 
     [Fact]
+    public async Task RespondToSideSwapAsync_ApprovedSwapChangesBothPlayersColors()
+    {
+        MatchService service = NewService();
+        Guid matchId = await StartMatchAsync(service);
+
+        string target = await service.OfferSideSwapAsync(matchId, White);
+        Assert.Equal(Black, target);
+
+        SideSwapResult result = await service.RespondToSideSwapAsync(matchId, Black, accepted: true);
+
+        Assert.True(result.Accepted);
+        Assert.Equal("Black", result.RequesterColor);
+        Assert.Equal("White", result.ResponderColor);
+        Assert.Equal(2, (await service.MakeMoveAsync(matchId, "e2", "e4", Black)).State.Turn);
+    }
+
+    [Fact]
+    public async Task RespondToSideSwapAsync_DeclinedOfferKeepsTheOriginalColors()
+    {
+        MatchService service = NewService();
+        Guid matchId = await StartMatchAsync(service);
+
+        await service.OfferSideSwapAsync(matchId, White);
+        SideSwapResult result = await service.RespondToSideSwapAsync(matchId, Black, accepted: false);
+
+        Assert.False(result.Accepted);
+        Assert.Equal("White", result.RequesterColor);
+        Assert.Equal("Black", result.ResponderColor);
+        Assert.Equal(2, (await service.MakeMoveAsync(matchId, "e2", "e4", White)).State.Turn);
+    }
+
+    [Fact]
+    public async Task OfferSideSwapAsync_RefusesAfterTheFirstMove()
+    {
+        MatchService service = NewService();
+        Guid matchId = await StartMatchAsync(service);
+        await service.MakeMoveAsync(matchId, "e2", "e4", White);
+
+        BoardException error = await Assert.ThrowsAsync<BoardException>(
+            () => service.OfferSideSwapAsync(matchId, Black));
+
+        Assert.Equal("Side swapping is only available before the first move", error.Message);
+    }
+
+    [Fact]
     public async Task MakeMoveAsync_AppliesTheSelectedPromotion()
     {
         MatchService service = NewService();
