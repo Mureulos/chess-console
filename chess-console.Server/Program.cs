@@ -20,6 +20,7 @@ builder.Services.AddHostedService<MatchClockService>();
 WebApplication app = builder.Build();
 
 // O mesmo processo serve o front de wwwroot e o Hub — nada de host separado.
+app.UseHttpsRedirection();
 app.UseDefaultFiles();
 app.UseStaticFiles();
 
