@@ -58,4 +58,19 @@ public class HubContractTests : IClassFixture<ChessServerFixture>
         Assert.Contains("@microsoft/signalr", html);
         Assert.Contains("app.js", html);
     }
+
+    [Fact]
+    public async Task TheDevelopmentFrontendOriginIsAllowedForSignalR()
+    {
+        using HttpRequestMessage request = new(HttpMethod.Options, "/hubs/chess");
+        request.Headers.Add("Origin", "http://localhost:5173");
+        request.Headers.Add("Access-Control-Request-Method", "POST");
+
+        using HttpResponseMessage response = await _server.CreateClient().SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal(
+            "http://localhost:5173",
+            response.Headers.GetValues("Access-Control-Allow-Origin").Single());
+    }
 }

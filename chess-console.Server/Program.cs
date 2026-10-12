@@ -4,6 +4,24 @@ using chess_console.Server.Hubs;
 using chess_console.Server.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+const string CorsPolicyName = "Frontend";
+string[] allowedOrigins =
+    builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(CorsPolicyName, policy =>
+    {
+        if (allowedOrigins.Length > 0)
+        {
+            policy
+                .WithOrigins(allowedOrigins)
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();
+        }
+    });
+});
 
 builder.Services
     .AddSignalR()
@@ -23,6 +41,7 @@ WebApplication app = builder.Build();
 app.UseHttpsRedirection();
 app.UseDefaultFiles();
 app.UseStaticFiles();
+app.UseCors(CorsPolicyName);
 
 app.MapHub<ChessHub>("/hubs/chess");
 
