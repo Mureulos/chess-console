@@ -323,6 +323,11 @@ public class ChessMatch
             completed = true;
             draw = true;
         }
+        else if (IsInsufficientMaterial())
+        {
+            completed = true;
+            draw = true;
+        }
         else if (moveCount >= SeventyFiveMoveLimit)
         {
             completed = true;
@@ -505,6 +510,33 @@ public class ChessMatch
             return false;
 
         return !HasLegalMove(color);
+    }
+
+    private bool IsInsufficientMaterial()
+    {
+        List<Piece> nonKings = GetPiecesInGame(Color.White)
+            .Concat(GetPiecesInGame(Color.Black))
+            .Where(piece => piece is not King)
+            .ToList();
+
+        if (nonKings.Count == 0)
+            return true;
+
+        if (nonKings.Count == 1)
+            return nonKings[0] is Bishop or Knight;
+
+        if (nonKings.Count != 2 || nonKings.Any(piece => piece is not Bishop))
+            return false;
+
+        return SameColorBishops((Bishop)nonKings[0], (Bishop)nonKings[1]);
+    }
+
+    private static bool SameColorBishops(Bishop first, Bishop second)
+    {
+        int firstSquareColor = (first.position.row + first.position.column) % 2;
+        int secondSquareColor = (second.position.row + second.position.column) % 2;
+
+        return firstSquareColor == secondSquareColor;
     }
 
     private bool HasLegalMove(Color color)
