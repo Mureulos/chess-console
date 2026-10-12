@@ -24,7 +24,8 @@ export async function enterMatch(method, matchId) {
         board: match.state,
         opponentPresent: joining,
         lastMove: null,
-        moveHistory: match.state.moveHistory ?? []
+        moveHistory: match.state.moveHistory ?? [],
+        clockSyncedAt: performance.now()
     });
 
     clearSelection();
@@ -201,6 +202,7 @@ export function registerConnectionEvents() {
 
     connection.on('ReceiveBoardState', result => {
         state.board = result.state;
+        state.clockSyncedAt = performance.now();
         state.moveHistory = result.state.moveHistory ?? state.moveHistory;
         state.lastMove = {
             origin: result.origin,
@@ -208,6 +210,12 @@ export function registerConnectionEvents() {
         };
 
         clearSelection();
+        render();
+    });
+
+    connection.on('ReceiveClockState', board => {
+        state.board = board;
+        state.clockSyncedAt = performance.now();
         render();
     });
 

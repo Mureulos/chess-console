@@ -8,7 +8,11 @@ namespace chess_console.Core.Dto;
 // escrever no Console.
 public static class BoardMapper
 {
-    public static BoardStateDto ToDto(ChessMatch match)
+    public static BoardStateDto ToDto(
+        ChessMatch match,
+        int whiteTimeSeconds = ChessMatch.InitialClockSeconds,
+        int blackTimeSeconds = ChessMatch.InitialClockSeconds,
+        bool clockRunning = false)
     {
         ArgumentNullException.ThrowIfNull(match);
 
@@ -19,6 +23,10 @@ public static class BoardMapper
             Check: match.check,
             Completed: match.completed,
             Draw: match.draw,
+            Timeout: match.timeout,
+            WhiteTimeSeconds: whiteTimeSeconds,
+            BlackTimeSeconds: blackTimeSeconds,
+            ClockRunning: clockRunning,
             // Em xeque-mate o ChessMatch já trocou de jogador, então quem leva é o
             // adversário da vez — a mesma conta que o Program.cs faz no fim do jogo.
             Winner: match.completed && !match.draw ? match.Opponent(match.actualPlayerColor).ToString() : null,
@@ -69,7 +77,13 @@ public static class BoardMapper
         return squares;
     }
 
-    public static MoveResultDto ToMoveResult(ChessMatch match, Position origin, Position target)
+    public static MoveResultDto ToMoveResult(
+        ChessMatch match,
+        Position origin,
+        Position target,
+        int whiteTimeSeconds = ChessMatch.InitialClockSeconds,
+        int blackTimeSeconds = ChessMatch.InitialClockSeconds,
+        bool clockRunning = false)
     {
         ArgumentNullException.ThrowIfNull(origin);
         ArgumentNullException.ThrowIfNull(target);
@@ -77,7 +91,7 @@ public static class BoardMapper
         return new MoveResultDto(
             ChessPosition.FromPosition(origin).ToString(),
             ChessPosition.FromPosition(target).ToString(),
-            ToDto(match));
+            ToDto(match, whiteTimeSeconds, blackTimeSeconds, clockRunning));
     }
 
     // Lê direto do tabuleiro, e não do HashSet interno de peças, porque o tabuleiro

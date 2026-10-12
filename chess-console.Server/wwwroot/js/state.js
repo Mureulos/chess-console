@@ -27,6 +27,7 @@ export const state = {
     lastMove: null,
     moveHistory: [],
     opponentPresent: false,
+    clockSyncedAt: 0,
     zoom: Number.isFinite(storedZoom) ? storedZoom : 1
 };
 
@@ -61,4 +62,20 @@ export function isLightSquare(file, rank) {
 export function clearSelection() {
     state.selected = null;
     state.targets = [];
+}
+
+export function clockSeconds(color) {
+    const board = state.board;
+    const seconds = color === 'White'
+        ? board?.whiteTimeSeconds
+        : board?.blackTimeSeconds;
+
+    if (!Number.isFinite(seconds))
+        return 0;
+
+    if (!board?.clockRunning || board.currentPlayer !== color || !state.clockSyncedAt)
+        return Math.max(0, seconds);
+
+    const elapsed = Math.floor((performance.now() - state.clockSyncedAt) / 1000);
+    return Math.max(0, seconds - elapsed);
 }

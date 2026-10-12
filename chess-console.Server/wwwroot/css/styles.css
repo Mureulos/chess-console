@@ -404,6 +404,15 @@ button {
         font-weight: 600;
     }
 
+    .clock {
+        font: 600 18px ui-monospace, "Cascadia Mono", monospace;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .clock--active {
+        color: var(--square-selected);
+    }
+
     .panel__facts code {
         font-size: 11px;
         font-weight: 400;

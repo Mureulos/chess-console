@@ -15,6 +15,8 @@ export const ui = {
     files: $('files'),
     matchLabel: $('match-label'),
     myColor: $('my-color'),
+    whiteClock: $('white-clock'),
+    blackClock: $('black-clock'),
     turn: $('turn'),
     currentPlayer: $('current-player'),
     gameState: $('game-state'),

@@ -15,5 +15,7 @@ public interface IMatchRepository
 
     IReadOnlyCollection<GameSession> GetWaitingForOpponent();
 
+    IReadOnlyCollection<GameSession> GetAll();
+
     bool Remove(Guid matchId);
 }

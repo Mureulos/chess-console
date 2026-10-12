@@ -15,6 +15,7 @@ builder.Services
 // Monolito: as partidas vivem no mesmo processo que serve o Hub.
 builder.Services.AddSingleton<IMatchRepository, InMemoryMatchRepository>();
 builder.Services.AddSingleton<MatchService>();
+builder.Services.AddHostedService<MatchClockService>();
 
 WebApplication app = builder.Build();
 

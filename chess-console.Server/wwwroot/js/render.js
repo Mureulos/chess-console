@@ -9,7 +9,8 @@ import {
     pieceAt,
     isMyTurn,
     canOfferSideSwap,
-    isLightSquare
+    isLightSquare,
+    clockSeconds
 } from './state.js';
 
 export function buildBoard() {
@@ -72,6 +73,16 @@ function renderPanel() {
     ui.matchLabel.textContent = state.matchId;
     ui.connectionMatchLabel.textContent = state.matchId;
     ui.myColor.textContent = state.myColor ?? '�';
+    ui.whiteClock.textContent = formatClock(clockSeconds('White'));
+    ui.blackClock.textContent = formatClock(clockSeconds('Black'));
+    ui.whiteClock.classList.toggle(
+        'clock--active',
+        board.clockRunning && board.currentPlayer === 'White'
+    );
+    ui.blackClock.classList.toggle(
+        'clock--active',
+        board.clockRunning && board.currentPlayer === 'Black'
+    );
     ui.turn.textContent = board.turn;
     ui.currentPlayer.textContent = board.currentPlayer;
     ui.capturedWhite.textContent = glyphs(board.capturedWhitePieces);
@@ -106,6 +117,12 @@ function renderMoveHistory() {
 
 function describeState(board) {
     if (board.completed) {
+        if (board.timeout) {
+            return board.winner === state.myColor
+                ? `Time out � you won as ${board.winner}.`
+                : `Time out � victory for ${board.winner}.`;
+        }
+
         if (board.draw) {
             return 'Draw.';
         }
@@ -124,6 +141,13 @@ function describeState(board) {
     }
 
     return isMyTurn() ? 'Your turn.' : "Opponent's turn.";
+}
+
+function formatClock(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = String(seconds % 60).padStart(2, '0');
+
+    return `${minutes}:${remainingSeconds}`;
 }
 
 export function setZoom(value) {

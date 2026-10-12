@@ -13,6 +13,7 @@ namespace chess_console.Server.Hubs;
 public sealed class ChessHub : Hub
 {
     public const string BoardStateEvent = "ReceiveBoardState";
+    public const string ClockStateEvent = "ReceiveClockState";
     public const string ErrorEvent = "ReceiveError";
     public const string OpponentJoinedEvent = "OpponentJoined";
     public const string OpponentLeftEvent = "OpponentLeft";
@@ -48,6 +49,7 @@ public sealed class ChessHub : Hub
             // Entra no grupo antes de avisar, para OthersInGroup significar "o adversário".
             await Groups.AddToGroupAsync(Context.ConnectionId, GroupOf(matchId));
             await Clients.OthersInGroup(GroupOf(matchId)).SendAsync(OpponentJoinedEvent, match.Color);
+            await Clients.OthersInGroup(GroupOf(matchId)).SendAsync(ClockStateEvent, match.State);
 
             return match;
         });

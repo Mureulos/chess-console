@@ -46,5 +46,7 @@ public sealed class InMemoryMatchRepository : IMatchRepository
             .Where(session => session.IsWaitingForOpponent && !session.IsFinished)
             .ToArray();
 
+    public IReadOnlyCollection<GameSession> GetAll() => _sessions.Values.ToArray();
+
     public bool Remove(Guid matchId) => _sessions.TryRemove(matchId, out _);
 }

@@ -10,6 +10,7 @@ namespace chess;
 public class ChessMatch
 {
     private const int SeventyFiveMoveLimit = 150;
+    public const int InitialClockSeconds = 10 * 60;
 
     public Board board { get; private set; }
     public int turn { get; private set; }
@@ -18,6 +19,7 @@ public class ChessMatch
     public bool check { get; private set; }
     public bool completed { get; private set; }
     public bool draw { get; private set; }
+    public bool timeout { get; private set; }
     public int moveCount { get; private set; }
     private HashSet<Piece> _pieces;
     private HashSet<Piece> _capturedPieces;
@@ -34,6 +36,7 @@ public class ChessMatch
         actualPlayerColor = Color.White;
         completed = false;
         draw = false;
+        timeout = false;
         moveCount = 0;
         vulnerableEnPassant = null;
         _pieces = new HashSet<Piece>();
@@ -316,33 +319,46 @@ public class ChessMatch
         {
             completed = true;
             draw = false;
+            timeout = false;
         }
 
         else if (isStalemate)
         {
             completed = true;
             draw = true;
+            timeout = false;
         }
         else if (IsInsufficientMaterial())
         {
             completed = true;
             draw = true;
+            timeout = false;
         }
         else if (moveCount >= SeventyFiveMoveLimit)
         {
             completed = true;
             draw = true;
+            timeout = false;
         }
         else if (IsThreefoldRepetition())
         {
             completed = true;
             draw = true;
+            timeout = false;
         }
         else
         {
             completed = false;
             draw = false;
+            timeout = false;
         }
+    }
+
+    public void CompleteByTimeout()
+    {
+        completed = true;
+        draw = false;
+        timeout = true;
     }
 
     private Piece CreatePromotionPiece(Color color, PromotionPiece promotion) => promotion switch

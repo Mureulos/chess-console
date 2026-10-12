@@ -17,6 +17,68 @@ public class GameSessionTests
     }
 
     [Fact]
+    public async Task Clock_RemainsStoppedUntilTheFirstMove()
+    {
+        GameSession session = new();
+        await TakeSeatAsync(session, "white");
+
+        (int whiteBefore, int blackBefore, bool waiting) =
+            await session.ExecuteAsync(s => s.GetClockState(DateTime.UtcNow));
+
+        await TakeSeatAsync(session, "black");
+        (int whiteAfter, int blackAfter, bool running) =
+            await session.ExecuteAsync(s => s.GetClockState(DateTime.UtcNow));
+
+        Assert.Equal(ChessMatch.InitialClockSeconds, whiteBefore);
+        Assert.Equal(ChessMatch.InitialClockSeconds, blackBefore);
+        Assert.False(waiting);
+        Assert.Equal(ChessMatch.InitialClockSeconds, whiteAfter);
+        Assert.Equal(ChessMatch.InitialClockSeconds, blackAfter);
+        Assert.False(running);
+
+        await session.ExecuteAsync(s =>
+        {
+            s.Match.MakeMove(Square('e', 2), Square('e', 4));
+            s.RestartClock();
+        });
+
+        (int whiteAfterMove, int blackAfterMove, bool runningAfterMove) =
+            await session.ExecuteAsync(s => s.GetClockState(DateTime.UtcNow));
+
+        Assert.Equal(ChessMatch.InitialClockSeconds, whiteAfterMove);
+        Assert.Equal(ChessMatch.InitialClockSeconds, blackAfterMove);
+        Assert.True(runningAfterMove);
+    }
+
+    [Fact]
+    public async Task Clock_CompletesTheMatchWhenTheActivePlayerRunsOutOfTime()
+    {
+        GameSession session = new();
+        await TakeSeatAsync(session, "white");
+        await TakeSeatAsync(session, "black");
+
+        await session.ExecuteAsync(s =>
+        {
+            s.Match.MakeMove(Square('e', 2), Square('e', 4));
+            s.RestartClock();
+        });
+
+        bool changed = await session.ExecuteAsync(s =>
+            s.UpdateClock(DateTime.UtcNow.AddMinutes(10).AddSeconds(1)));
+
+        (int whiteSeconds, int blackSeconds, bool running) =
+            await session.ExecuteAsync(s => s.GetClockState(DateTime.UtcNow));
+
+        Assert.True(changed);
+        Assert.Equal(ChessMatch.InitialClockSeconds, whiteSeconds);
+        Assert.Equal(0, blackSeconds);
+        Assert.False(running);
+        Assert.True(session.Match.completed);
+        Assert.True(session.Match.timeout);
+        Assert.Equal(Color.White, session.Match.Opponent(session.Match.actualPlayerColor));
+    }
+
+    [Fact]
     public async Task TryTakeSeat_IsIdempotentForTheSameConnection()
     {
         GameSession session = new();

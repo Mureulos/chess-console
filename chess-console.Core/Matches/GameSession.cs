@@ -7,12 +7,16 @@ namespace chess_console.Core.Matches;
 // GameSession encapsula uma partida, assentos e exclusão mútua (Contém um ChessMatch e um SemaphoreSlim).
 public sealed class GameSession
 {
+    private static readonly TimeSpan InitialClock = TimeSpan.FromMinutes(10);
     // SemaphoreSlim só precisa de Dispose quando AvailableWaitHandle é usado — aqui
     // não é. Não descartar evita que remover a partida do repositório quebre uma
     // operação que ainda está em voo segurando o lock.
     private readonly SemaphoreSlim _gate = new(1, 1);
     private string? _sideSwapRequester;
     private string? _sideSwapTarget;
+    private TimeSpan _whiteTimeRemaining = InitialClock;
+    private TimeSpan _blackTimeRemaining = InitialClock;
+    private DateTime? _activeClockStartedAtUtc;
 
     public GameSession() : this(Guid.NewGuid(), new ChessMatch())
     {
@@ -46,6 +50,59 @@ public sealed class GameSession
     public bool IsWaitingForOpponent => !IsEmpty && !IsFull;
 
     public bool IsFinished => Match.completed;
+
+    public bool UpdateClock(DateTime nowUtc)
+    {
+        EnsureLocked();
+
+        if (!IsFull || IsFinished || _activeClockStartedAtUtc is null)
+            return false;
+
+        TimeSpan elapsed = nowUtc - _activeClockStartedAtUtc.Value;
+        if (elapsed <= TimeSpan.Zero)
+            return false;
+
+        _activeClockStartedAtUtc = nowUtc;
+
+        if (Match.actualPlayerColor == Color.White)
+            _whiteTimeRemaining -= elapsed;
+        else
+            _blackTimeRemaining -= elapsed;
+
+        TimeSpan remaining = Match.actualPlayerColor == Color.White
+            ? _whiteTimeRemaining
+            : _blackTimeRemaining;
+
+        if (remaining > TimeSpan.Zero)
+            return true;
+
+        if (Match.actualPlayerColor == Color.White)
+            _whiteTimeRemaining = TimeSpan.Zero;
+        else
+            _blackTimeRemaining = TimeSpan.Zero;
+
+        Match.CompleteByTimeout();
+        return true;
+    }
+
+    public (int WhiteSeconds, int BlackSeconds, bool Running) GetClockState(DateTime nowUtc)
+    {
+        EnsureLocked();
+        UpdateClock(nowUtc);
+
+        return (
+            SecondsOf(_whiteTimeRemaining),
+            SecondsOf(_blackTimeRemaining),
+            IsFull && !IsFinished && _activeClockStartedAtUtc is not null);
+    }
+
+    public void RestartClock()
+    {
+        EnsureLocked();
+
+        if (IsFull && !IsFinished)
+            _activeClockStartedAtUtc = DateTime.UtcNow;
+    }
 
     public bool HasPendingSideSwap => _sideSwapRequester is not null;
 
@@ -173,6 +230,9 @@ public sealed class GameSession
         _sideSwapRequester = null;
         _sideSwapTarget = null;
     }
+
+    private static int SecondsOf(TimeSpan remaining) =>
+        Math.Max(0, (int)Math.Ceiling(remaining.TotalSeconds));
 
     /* Executa uma operação que precisa acessar ou alterar a sessão e retorna um resultado.
      * O semáforo permite que apenas uma operação por vez altere o estado da partida.

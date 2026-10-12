@@ -57,7 +57,7 @@ public sealed class MatchService
 
     // Entra no lock da sessão e transforma o ChessMatch em BoardStateDto.
     public Task<BoardStateDto> GetStateAsync(Guid matchId, CancellationToken cancellationToken = default) =>
-        Require(matchId).ExecuteAsync(session => BoardMapper.ToDto(session.Match), cancellationToken);
+        Require(matchId).ExecuteAsync(session => StateOf(session), cancellationToken);
 
     // Verifica se a conexão é o jogador da vez, converte "e2" (linguagem natural do xadrez) em Position e delega a validação ao Core
     public Task<PossibleMovesDto> GetPossibleMovesAsync(
@@ -91,8 +91,18 @@ public sealed class MatchService
             session.Match.ValideOriginPosition(from);
             session.Match.ValidadeTargetPosition(from, to);
             session.Match.MakeMove(from, to, ParsePromotion(promotion));
+            session.RestartClock();
 
-            return BoardMapper.ToMoveResult(session.Match, from, to);
+            (int whiteSeconds, int blackSeconds, bool running) =
+                session.GetClockState(DateTime.UtcNow);
+
+            return BoardMapper.ToMoveResult(
+                session.Match,
+                from,
+                to,
+                whiteSeconds,
+                blackSeconds,
+                running);
         }, cancellationToken);
 
     public Task<string> OfferSideSwapAsync(
@@ -194,14 +204,22 @@ public sealed class MatchService
             if (!current.TryTakeSeat(connectionId, out Color color))
                 throw new BoardException("This match already has two players");
 
-            return new MatchJoinedDto(current.Id, color.ToString(), BoardMapper.ToDto(current.Match));
+            return new MatchJoinedDto(current.Id, color.ToString(), StateOf(current));
         }, cancellationToken);
+
+    private static BoardStateDto StateOf(GameSession session)
+    {
+        (int whiteSeconds, int blackSeconds, bool running) = session.GetClockState(DateTime.UtcNow);
+        return BoardMapper.ToDto(session.Match, whiteSeconds, blackSeconds, running);
+    }
 
     private GameSession Require(Guid matchId) =>
         _repository.Get(matchId) ?? throw new BoardException("Match not found");
 
     private static void EnsureItIsTheTurnOf(GameSession session, string connectionId)
     {
+        session.UpdateClock(DateTime.UtcNow);
+
         if (!session.IsSeated(connectionId))
             throw new BoardException("You are not playing this match");
 
@@ -217,6 +235,8 @@ public sealed class MatchService
 
     private static void EnsureCanSwapSides(GameSession session, string connectionId)
     {
+        session.UpdateClock(DateTime.UtcNow);
+
         if (!session.IsSeated(connectionId))
             throw new BoardException("You are not playing this match");
 

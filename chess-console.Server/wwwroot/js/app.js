@@ -1,7 +1,7 @@
 'use strict';
 import { ui, say, setConnectionState } from './dom.js';
 import { state } from './state.js';
-import { setZoom } from './render.js';
+import { render, setZoom } from './render.js';
 import {
     connection,
     enterMatch,
@@ -28,6 +28,11 @@ registerUiEvents({
 
 setConnectionState('connecting', 'connecting...');
 setZoom(state.zoom);
+setInterval(() => {
+    if (state.board) {
+        render();
+    }
+}, 250);
 
 if (location.hash.length > 1) {
     ui.matchIdInput.value = decodeURIComponent(location.hash.slice(1));
