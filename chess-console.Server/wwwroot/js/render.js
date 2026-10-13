@@ -73,7 +73,9 @@ function renderPanel() {
 
     ui.matchLabel.textContent = state.matchId;
     ui.connectionMatchLabel.textContent = state.matchId;
-    ui.myColor.textContent = state.myColor ?? '—';
+    ui.myColor.textContent = state.myColor
+        ? `${state.playerName ?? 'Anonymous'} (${state.myColor})`
+        : '—';
     ui.whiteClock.textContent = formatClock(clockSeconds('White'));
     ui.blackClock.textContent = formatClock(clockSeconds('Black'));
     ui.whiteClock.classList.toggle(

@@ -86,6 +86,17 @@ body {
     color: var(--muted);
 }
 
+.lobby__player label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.lobby__player {
+    flex-basis: 100%;
+}
+
 .lobby__actions {
     display: flex;
     gap: 8px;

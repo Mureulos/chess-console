@@ -1,5 +1,6 @@
 using chess_console.Core.Dto;
 using chess_console.Exceptions;
+using chess_console.Server.Filters;
 using chess_console.Server.Services;
 using Microsoft.AspNetCore.SignalR;
 
@@ -34,7 +35,10 @@ public sealed class ChessHub : Hub
     public Task<MatchJoinedDto?> CreateMatch() =>
         GuardAsync(async () =>
         {
-            MatchJoinedDto match = await _matches.CreateAsync(Context.ConnectionId);
+            PlayerSession player = PlayerTokenHubFilter.GetRequired(Context);
+            MatchJoinedDto match = await _matches.CreateAsync(
+                Context.ConnectionId,
+                player.Name);
             await Groups.AddToGroupAsync(Context.ConnectionId, GroupOf(match.MatchId));
 
             return match;
@@ -44,7 +48,11 @@ public sealed class ChessHub : Hub
     public Task<MatchJoinedDto?> JoinMatch(Guid matchId) =>
         GuardAsync(async () =>
         {
-            MatchJoinedDto match = await _matches.JoinAsync(matchId, Context.ConnectionId);
+            PlayerSession player = PlayerTokenHubFilter.GetRequired(Context);
+            MatchJoinedDto match = await _matches.JoinAsync(
+                matchId,
+                Context.ConnectionId,
+                player.Name);
 
             // Entra no grupo antes de avisar, para OthersInGroup significar "o adversário".
             await Groups.AddToGroupAsync(Context.ConnectionId, GroupOf(matchId));

@@ -11,7 +11,9 @@ import { buildBoard, render } from './render.js';
 import { initializeGameSwiper } from './swiper-ui.js';
 
 export const connection = new signalR.HubConnectionBuilder()
-    .withUrl('/hubs/chess')
+    .withUrl('/hubs/chess', {
+        accessTokenFactory: () => state.playerToken ?? ''
+    })
     .withAutomaticReconnect()
     .build();
 

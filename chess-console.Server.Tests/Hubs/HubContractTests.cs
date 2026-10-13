@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Net.Http.Json;
 using chess;
 using chess_console.Core.Dto;
 using chess_console.Server.Hubs;
@@ -73,4 +74,43 @@ public class HubContractTests : IClassFixture<ChessServerFixture>
             "http://localhost:5173",
             response.Headers.GetValues("Access-Control-Allow-Origin").Single());
     }
+
+    [Fact]
+    public async Task PlayerSessionReturnsAnAnonymousTokenAndNormalizedName()
+    {
+        using HttpClient client = _server.CreateClient();
+
+        using HttpResponseMessage response = await client.PostAsJsonAsync(
+            "/api/player/session",
+            new { name = "  Test   Player  " });
+        PlayerSessionResponse? session = await response.Content.ReadFromJsonAsync<PlayerSessionResponse>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(session);
+        Assert.Equal("Test Player", session.Name);
+        Assert.False(string.IsNullOrWhiteSpace(session.Token));
+        Assert.True(session.ExpiresAtUtc > DateTime.UtcNow);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("a")]
+    [InlineData("This player name is too long")]
+    public async Task PlayerSessionRejectsInvalidNames(string name)
+    {
+        using HttpClient client = _server.CreateClient();
+
+        using HttpResponseMessage response = await client.PostAsJsonAsync(
+            "/api/player/session",
+            new { name });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    private sealed record PlayerSessionResponse(
+        string Token,
+        string PlayerId,
+        string Name,
+        DateTime ExpiresAtUtc);
+
 }

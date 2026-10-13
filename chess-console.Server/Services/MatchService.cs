@@ -21,12 +21,19 @@ public sealed class MatchService
     }
 
     // Pede uma nova sessão ao repositório e ocupa a primeira cadeira, sempre branca.
-    public Task<MatchJoinedDto> CreateAsync(string connectionId, CancellationToken cancellationToken = default) =>
-        TakeSeatAsync(_repository.Create(), connectionId, cancellationToken);
+    public Task<MatchJoinedDto> CreateAsync(
+        string connectionId,
+        string playerName = "Anonymous",
+        CancellationToken cancellationToken = default) =>
+        TakeSeatAsync(_repository.Create(), connectionId, playerName, cancellationToken);
 
     // Procura o Guid, ocupa a cadeira livre e devolve a cor e o estado inicial.
-    public Task<MatchJoinedDto> JoinAsync(Guid matchId, string connectionId, CancellationToken cancellationToken = default) =>
-        TakeSeatAsync(Require(matchId), connectionId, cancellationToken);
+    public Task<MatchJoinedDto> JoinAsync(
+        Guid matchId,
+        string connectionId,
+        string playerName = "Anonymous",
+        CancellationToken cancellationToken = default) =>
+        TakeSeatAsync(Require(matchId), connectionId, playerName, cancellationToken);
 
     public Guid[] GetWaitingMatchIds() =>
         _repository.GetWaitingForOpponent()
@@ -198,13 +205,14 @@ public sealed class MatchService
     private static Task<MatchJoinedDto> TakeSeatAsync(
         GameSession session,
         string connectionId,
+        string playerName,
         CancellationToken cancellationToken) =>
         session.ExecuteAsync(current =>
         {
             if (!current.TryTakeSeat(connectionId, out Color color))
                 throw new BoardException("This match already has two players");
 
-            return new MatchJoinedDto(current.Id, color.ToString(), StateOf(current));
+            return new MatchJoinedDto(current.Id, color.ToString(), StateOf(current), playerName);
         }, cancellationToken);
 
     private static BoardStateDto StateOf(GameSession session)

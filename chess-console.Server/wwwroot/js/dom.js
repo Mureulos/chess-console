@@ -5,6 +5,9 @@ export const ui = {
     panelConnection: $('panel-connection'),
     lobby: $('lobby'),
     game: $('game'),
+    playerForm: $('player-form'),
+    playerName: $('player-name'),
+    connectPlayer: $('connect-player'),
     create: $('create'),
     searchMatches: $('search-matches'),
     joinForm: $('join-form'),
@@ -59,6 +62,8 @@ export function setConnectionState(value, label) {
     ui.connection.textContent = label;
     ui.panelConnection.dataset.state = value;
     ui.panelConnection.textContent = label;
+    ui.playerName.disabled = connected;
+    ui.connectPlayer.disabled = connected;
     ui.create.disabled = !connected;
     ui.searchMatches.disabled = !connected;
     ui.joinButton.disabled = !connected;

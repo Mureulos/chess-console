@@ -65,18 +65,29 @@ builder.Services
     .AddJsonProtocol(options =>
         options.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 builder.Services.AddSingleton<RateLimitingHubFilter>();
-builder.Services.Configure<HubOptions>(options => options.AddFilter<RateLimitingHubFilter>());
+builder.Services.AddSingleton<PlayerSessionService>();
+builder.Services.AddSingleton<PlayerTokenHubFilter>();
+builder.Services.Configure<HubOptions>(options =>
+{
+    options.AddFilter<PlayerTokenHubFilter>();
+    options.AddFilter<RateLimitingHubFilter>();
+});
 
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
     {
-        bool isSignalRNegotiation =
-            httpContext.Request.Path.Equals("/hubs/chess/negotiate", StringComparison.OrdinalIgnoreCase)
+        bool isProtectedRequest =
+            (httpContext.Request.Path.Equals(
+                 "/hubs/chess/negotiate",
+                 StringComparison.OrdinalIgnoreCase)
+             || httpContext.Request.Path.Equals(
+                 "/api/player/session",
+                 StringComparison.OrdinalIgnoreCase))
             && HttpMethods.IsPost(httpContext.Request.Method);
 
-        if (!isSignalRNegotiation)
+        if (!isProtectedRequest)
             return RateLimitPartition.GetNoLimiter("unlimited");
 
         return RateLimitPartition.GetSlidingWindowLimiter(
@@ -108,6 +119,21 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseCors(CorsPolicyName);
 app.UseRateLimiter();
+
+app.MapPost("/api/player/session", (
+    CreatePlayerSessionRequest request,
+    PlayerSessionService sessions) =>
+{
+    try
+    {
+        PlayerSession session = sessions.Create(request.Name);
+        return Results.Ok(session);
+    }
+    catch (ArgumentException exception)
+    {
+        return Results.BadRequest(new { error = exception.Message });
+    }
+});
 
 app.MapHub<ChessHub>("/hubs/chess");
 

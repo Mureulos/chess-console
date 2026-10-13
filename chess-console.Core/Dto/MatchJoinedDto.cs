@@ -5,4 +5,5 @@ namespace chess_console.Core.Dto;
 public sealed record MatchJoinedDto(
     Guid MatchId,
     string Color,
-    BoardStateDto State);
+    BoardStateDto State,
+    string PlayerName = "Anonymous");

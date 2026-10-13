@@ -19,6 +19,9 @@ export const ZOOM_STORAGE_KEY = 'chess-console.zoom';
 const storedZoom = Number.parseFloat(localStorage.getItem(ZOOM_STORAGE_KEY));
 
 export const state = {
+    playerToken: null,
+    playerName: null,
+    playerExpiresAt: null,
     matchId: null,
     myColor: null,
     board: null,

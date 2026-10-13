@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
+using chess_console.Server.Services;
 
 namespace chess_console.Server.Tests.Hubs;
 
@@ -37,10 +39,16 @@ public class RateLimitingTests : IClassFixture<RateLimitServerFixture>
     [Fact]
     public async Task HubInvocationsReturnAnErrorAfterTheClientLimit()
     {
+        string token = _server.Services
+            .GetRequiredService<PlayerSessionService>()
+            .Create("Rate Limit Test")
+            .Token;
+
         await using HubConnection connection = new HubConnectionBuilder()
             .WithUrl("http://localhost/hubs/chess", options =>
             {
                 options.HttpMessageHandlerFactory = _ => _server.Server.CreateHandler();
+                options.AccessTokenProvider = () => Task.FromResult<string?>(token);
             })
             .Build();
 
@@ -49,6 +57,24 @@ public class RateLimitingTests : IClassFixture<RateLimitServerFixture>
 
         await Assert.ThrowsAsync<HubException>(
             () => connection.InvokeAsync<Guid[]>(nameof(ChessHub.GetWaitingMatches)));
+    }
+
+    [Fact]
+    public async Task HubInvocationsWithoutAPlayerTokenAreRejected()
+    {
+        await using HubConnection connection = new HubConnectionBuilder()
+            .WithUrl("http://localhost/hubs/chess", options =>
+            {
+                options.HttpMessageHandlerFactory = _ => _server.Server.CreateHandler();
+            })
+            .Build();
+
+        await connection.StartAsync();
+
+        HubException exception = await Assert.ThrowsAsync<HubException>(
+            () => connection.InvokeAsync<Guid[]>(nameof(ChessHub.GetWaitingMatches)));
+
+        Assert.Contains("session is missing or expired", exception.Message);
     }
 }
 
