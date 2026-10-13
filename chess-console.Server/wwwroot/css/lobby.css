@@ -1,0 +1,86 @@
+/* ===== Lobby ===== */
+
+.lobby {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 24px;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 40px;
+}
+
+.lobby__join label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.lobby__player label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.lobby__player {
+    flex-basis: 100%;
+}
+
+.lobby__actions {
+    display: flex;
+    gap: 8px;
+}
+
+.lobby__row {
+    display: flex;
+    gap: 8px;
+}
+
+/* ===== Controles ===== */
+
+input {
+    min-width: 290px;
+    padding: 9px 12px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font: 13px ui-monospace, "Cascadia Mono", monospace;
+}
+
+button {
+    padding: 9px 16px;
+    background: var(--square-dark);
+    color: #fff;
+    border: 0;
+    border-radius: 6px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.2s ease, background-color 0.2s ease;
+}
+
+    button:hover {
+        filter: brightness(1.1);
+    }
+
+    button:disabled {
+        opacity: .5;
+        cursor: default;
+        filter: none;
+    }
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+}
+
+    .btn-secondary:hover {
+        background: var(--border);
+        filter: none;
+    }

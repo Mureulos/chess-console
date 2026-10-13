@@ -1,0 +1,105 @@
+/* ===== Responsivo ===== */
+
+@media (max-width: 760px) {
+    .app {
+        padding: 24px 16px max(16px, env(safe-area-inset-bottom));
+    }
+
+    .app__header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 24px;
+    }
+
+    .lobby {
+        align-items: stretch;
+        gap: 16px;
+        padding: 16px;
+        margin-bottom: 24px;
+    }
+
+    .lobby__actions {
+        flex-direction: column;
+    }
+
+    .lobby__player,
+    .lobby__join {
+        width: 100%;
+    }
+
+    .lobby__row {
+        flex-direction: column;
+    }
+
+    .game {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+        min-width: 0;
+    }
+
+    input {
+        min-width: 0;
+        width: 100%;
+    }
+
+    input,
+    button {
+        min-height: 44px;
+    }
+
+    .board-area {
+        width: min(calc(460px * var(--zoom)), 92%);
+        justify-self: center;
+    }
+
+    .panel {
+        padding: 16px;
+    }
+
+    .panel .swiper,
+    .panel__slide {
+        height: 350px;
+    }
+
+    .panel__slide {
+        gap: 16px;
+    }
+
+    .panel__actions button {
+        min-height: 44px;
+    }
+}
+
+@media (max-width: 420px) {
+    .app {
+        padding-inline: 12px;
+    }
+
+    .board-frame {
+        grid-template-columns: 16px minmax(0, 1fr);
+        gap: 4px;
+    }
+
+    .ranks,
+    .files {
+        font-size: 11px;
+    }
+
+    .zoom {
+        margin-top: 8px;
+    }
+
+    .zoom button,
+    .panel__nav-button {
+        min-height: 40px;
+    }
+
+    .swap-dialog__actions {
+        flex-direction: column-reverse;
+    }
+
+    .swap-dialog__actions button {
+        width: 100%;
+    }
+}
