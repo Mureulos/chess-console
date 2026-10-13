@@ -1,9 +1,11 @@
 using System.Text.Json;
 using System.Threading.RateLimiting;
 using chess_console.Core.Matches;
+using chess_console.Server.Filters;
 using chess_console.Server.Hubs;
 using chess_console.Server.Services;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.SignalR;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 const string CorsPolicyName = "Frontend";
@@ -43,6 +45,8 @@ builder.Services
     // state.CurrentPlayer). Há teste fixando esse formato.
     .AddJsonProtocol(options =>
         options.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
+builder.Services.AddSingleton<RateLimitingHubFilter>();
+builder.Services.Configure<HubOptions>(options => options.AddFilter<RateLimitingHubFilter>());
 
 builder.Services.AddRateLimiter(options =>
 {

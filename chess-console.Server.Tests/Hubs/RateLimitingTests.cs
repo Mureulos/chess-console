@@ -1,9 +1,27 @@
 using System.Net;
+using chess_console.Server.Hubs;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.SignalR.Client;
 
 namespace chess_console.Server.Tests.Hubs;
 
 public sealed class RateLimitServerFixture : WebApplicationFactory<Program>
+{
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.ConfigureAppConfiguration((_, configuration) =>
+            configuration.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["RateLimiting:SignalR:InvocationPermitLimit"] = "1",
+                ["RateLimiting:SignalR:InvocationWindowSeconds"] = "60"
+            }));
+    }
+}
+
+public sealed class NegotiationRateLimitServerFixture : WebApplicationFactory<Program>
 {
 }
 
@@ -12,6 +30,33 @@ public class RateLimitingTests : IClassFixture<RateLimitServerFixture>
     private readonly RateLimitServerFixture _server;
 
     public RateLimitingTests(RateLimitServerFixture server)
+    {
+        _server = server;
+    }
+
+    [Fact]
+    public async Task HubInvocationsReturnAnErrorAfterTheClientLimit()
+    {
+        await using HubConnection connection = new HubConnectionBuilder()
+            .WithUrl("http://localhost/hubs/chess", options =>
+            {
+                options.HttpMessageHandlerFactory = _ => _server.Server.CreateHandler();
+            })
+            .Build();
+
+        await connection.StartAsync();
+        await connection.InvokeAsync<Guid[]>(nameof(ChessHub.GetWaitingMatches));
+
+        await Assert.ThrowsAsync<HubException>(
+            () => connection.InvokeAsync<Guid[]>(nameof(ChessHub.GetWaitingMatches)));
+    }
+}
+
+public class NegotiationRateLimitingTests : IClassFixture<NegotiationRateLimitServerFixture>
+{
+    private readonly NegotiationRateLimitServerFixture _server;
+
+    public NegotiationRateLimitingTests(NegotiationRateLimitServerFixture server)
     {
         _server = server;
     }
