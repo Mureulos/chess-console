@@ -59,24 +59,42 @@ public class ChessHubTests : IClassFixture<ChessServerFixture>
     }
 
     [Fact]
-    public async Task LeaveMatch_ReleasesTheSeatAndNotifiesTheOpponent()
+    public async Task LeaveMatch_RemovesAWaitingMatch()
+    {
+        await using HubConnection white = _server.CreateConnection();
+        await white.StartAsync();
+        MatchJoinedDto created = await InvokeAsync<MatchJoinedDto>(
+            white, nameof(ChessHub.CreateMatch));
+
+        Assert.True(await white.InvokeAsync<bool>(
+            nameof(ChessHub.LeaveMatch), created.MatchId));
+
+        await using HubConnection replacement = _server.CreateConnection();
+        await replacement.StartAsync();
+
+        Guid[] waiting = await replacement.InvokeAsync<Guid[]>(
+            nameof(ChessHub.GetWaitingMatches));
+        Assert.DoesNotContain(created.MatchId, waiting);
+    }
+
+    [Fact]
+    public async Task LeaveMatch_EndsAFullMatchAndAwardsVictoryToTheOpponent()
     {
         await using HubConnection white = _server.CreateConnection();
         await using HubConnection black = _server.CreateConnection();
 
-        Task opponentLeft = NextEventAsync(black, ChessHub.OpponentLeftEvent);
+        Task<BoardStateDto> abandoned = NextEventAsync<BoardStateDto>(
+            black, ChessHub.MatchAbandonedEvent);
         Guid matchId = await StartMatchAsync(white, black);
 
         Assert.True(await white.InvokeAsync<bool>(
             nameof(ChessHub.LeaveMatch), matchId));
-        await opponentLeft;
 
-        await using HubConnection replacement = _server.CreateConnection();
-        await replacement.StartAsync();
-        MatchJoinedDto joined = await InvokeAsync<MatchJoinedDto>(
-            replacement, nameof(ChessHub.JoinMatch), matchId);
-
-        Assert.Equal("White", joined.Color);
+        BoardStateDto finalState = await abandoned;
+        Assert.True(finalState.Completed);
+        Assert.False(finalState.Draw);
+        Assert.True(finalState.Resignation);
+        Assert.Equal("Black", finalState.Winner);
     }
 
     [Fact]

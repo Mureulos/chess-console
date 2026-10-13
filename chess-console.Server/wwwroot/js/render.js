@@ -130,6 +130,10 @@ function describeState(board) {
             return 'Draw.';
         }
 
+        if (board.resignation) {
+            return 'You won — your opponent abandoned the match.';
+        }
+
         return board.winner === state.myColor
             ? `Checkmate — you won as ${board.winner}.`
             : `Checkmate — victory for ${board.winner}.`;

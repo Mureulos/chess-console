@@ -24,12 +24,15 @@ public static class BoardMapper
             Completed: match.completed,
             Draw: match.draw,
             Timeout: match.timeout,
+            Resignation: match.resignation,
             WhiteTimeSeconds: whiteTimeSeconds,
             BlackTimeSeconds: blackTimeSeconds,
             ClockRunning: clockRunning,
             // Em xeque-mate o ChessMatch já trocou de jogador, então quem leva é o
             // adversário da vez — a mesma conta que o Program.cs faz no fim do jogo.
-            Winner: match.completed && !match.draw ? match.Opponent(match.actualPlayerColor).ToString() : null,
+            Winner: match.completed && !match.draw
+                ? (match.winner ?? match.Opponent(match.actualPlayerColor)).ToString()
+                : null,
             CapturedWhitePieces: ToDto(match.GetCapturedPieces(Color.White)),
             CapturedBlackPieces: ToDto(match.GetCapturedPieces(Color.Black)),
             MoveHistory: match.MoveHistory.ToArray());

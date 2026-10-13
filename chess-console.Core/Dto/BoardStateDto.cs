@@ -10,6 +10,7 @@ public sealed record BoardStateDto(
     bool Completed,
     bool Draw,
     bool Timeout,
+    bool Resignation,
     int WhiteTimeSeconds,
     int BlackTimeSeconds,
     bool ClockRunning,

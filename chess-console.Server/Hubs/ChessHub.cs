@@ -18,6 +18,7 @@ public sealed class ChessHub : Hub
     public const string ErrorEvent = "ReceiveError";
     public const string OpponentJoinedEvent = "OpponentJoined";
     public const string OpponentLeftEvent = "OpponentLeft";
+    public const string MatchAbandonedEvent = "MatchAbandoned";
     public const string SideSwapRequestedEvent = "SideSwapRequested";
     public const string SideSwapDeclinedEvent = "SideSwapDeclined";
     public const string SideSwapAcceptedEvent = "SideSwapAccepted";
@@ -67,10 +68,17 @@ public sealed class ChessHub : Hub
 
     public async Task<bool> LeaveMatch(Guid matchId)
     {
-        if (!await _matches.LeaveAsync(matchId, Context.ConnectionId))
+        (bool left, BoardStateDto? finalState) =
+            await _matches.AbandonAsync(matchId, Context.ConnectionId);
+        if (!left)
             return false;
 
-        await Clients.OthersInGroup(GroupOf(matchId)).SendAsync(OpponentLeftEvent);
+        if (finalState is null)
+            await Clients.OthersInGroup(GroupOf(matchId)).SendAsync(OpponentLeftEvent);
+        else
+            await Clients.OthersInGroup(GroupOf(matchId)).SendAsync(MatchAbandonedEvent, finalState);
+
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, GroupOf(matchId));
         return true;
     }
 

@@ -238,6 +238,14 @@ export function registerConnectionEvents() {
         render();
     });
 
+    connection.on('MatchAbandoned', board => {
+        state.board = board;
+        state.opponentPresent = false;
+        state.clockSyncedAt = performance.now();
+        say('You won because your opponent left the match.');
+        render();
+    });
+
     connection.on('SideSwapRequested', () => {
         openSwapDialog('Your opponent wants to swap sides.', 'response');
     });

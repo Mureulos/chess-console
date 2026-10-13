@@ -20,6 +20,8 @@ public class ChessMatch
     public bool completed { get; private set; }
     public bool draw { get; private set; }
     public bool timeout { get; private set; }
+    public bool resignation { get; private set; }
+    public Color? winner { get; private set; }
     public int moveCount { get; private set; }
     private HashSet<Piece> _pieces;
     private HashSet<Piece> _capturedPieces;
@@ -37,6 +39,8 @@ public class ChessMatch
         completed = false;
         draw = false;
         timeout = false;
+        resignation = false;
+        winner = null;
         moveCount = 0;
         vulnerableEnPassant = null;
         _pieces = new HashSet<Piece>();
@@ -320,6 +324,8 @@ public class ChessMatch
             completed = true;
             draw = false;
             timeout = false;
+            resignation = false;
+            winner = Opponent(actualPlayerColor);
         }
 
         else if (isStalemate)
@@ -327,30 +333,40 @@ public class ChessMatch
             completed = true;
             draw = true;
             timeout = false;
+            resignation = false;
+            winner = null;
         }
         else if (IsInsufficientMaterial())
         {
             completed = true;
             draw = true;
             timeout = false;
+            resignation = false;
+            winner = null;
         }
         else if (moveCount >= SeventyFiveMoveLimit)
         {
             completed = true;
             draw = true;
             timeout = false;
+            resignation = false;
+            winner = null;
         }
         else if (IsThreefoldRepetition())
         {
             completed = true;
             draw = true;
             timeout = false;
+            resignation = false;
+            winner = null;
         }
         else
         {
             completed = false;
             draw = false;
             timeout = false;
+            resignation = false;
+            winner = null;
         }
     }
 
@@ -359,6 +375,17 @@ public class ChessMatch
         completed = true;
         draw = false;
         timeout = true;
+        resignation = false;
+        winner = Opponent(actualPlayerColor);
+    }
+
+    public void CompleteByResignation(Color resignedColor)
+    {
+        completed = true;
+        draw = false;
+        timeout = false;
+        resignation = true;
+        winner = Opponent(resignedColor);
     }
 
     private Piece CreatePromotionPiece(Color color, PromotionPiece promotion) => promotion switch

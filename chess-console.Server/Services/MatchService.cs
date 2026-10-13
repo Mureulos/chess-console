@@ -202,6 +202,39 @@ public sealed class MatchService
         return await LeaveAsync(connectionId, cancellationToken) == matchId;
     }
 
+    public async Task<(bool Left, BoardStateDto? FinalState)> AbandonAsync(
+        Guid matchId,
+        string connectionId,
+        CancellationToken cancellationToken = default)
+    {
+        GameSession? session = _repository.FindByConnection(connectionId);
+
+        if (session?.Id != matchId)
+            return (false, null);
+
+        (bool Left, BoardStateDto? FinalState) result = await session.ExecuteAsync(current =>
+        {
+            Color? color = current.ColorOf(connectionId);
+            if (color is null)
+                return (Left: false, FinalState: (BoardStateDto?)null);
+
+            if (!current.IsFull)
+            {
+                current.ReleaseSeat(connectionId);
+                return (Left: true, FinalState: (BoardStateDto?)null);
+            }
+
+            current.Match.CompleteByResignation(color.Value);
+            current.ReleaseSeat(connectionId);
+            return (Left: true, FinalState: StateOf(current));
+        }, cancellationToken);
+
+        if (session.IsEmpty)
+            _repository.Remove(session.Id);
+
+        return result;
+    }
+
     private static Task<MatchJoinedDto> TakeSeatAsync(
         GameSession session,
         string connectionId,
@@ -209,6 +242,9 @@ public sealed class MatchService
         CancellationToken cancellationToken) =>
         session.ExecuteAsync(current =>
         {
+            if (current.IsFinished)
+                throw new BoardException("This match is already over");
+
             if (!current.TryTakeSeat(connectionId, out Color color))
                 throw new BoardException("This match already has two players");
 
