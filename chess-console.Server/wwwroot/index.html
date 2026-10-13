@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Real-time Chess</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <main class="app">
+        <header class="app__header">
+            <h1>Chess</h1>
+            <p class="status" id="connection" data-state="connecting">connecting...</p>
+        </header>
+
+        <section class="lobby" id="lobby">
+            <form class="lobby__player" id="player-form">
+                <label for="player-name">Player name</label>
+                <div class="lobby__row">
+                    <input type="text" id="player-name" maxlength="24" minlength="2" required
+                           placeholder="your name" autocomplete="nickname">
+                    <button type="submit" id="connect-player">Connect</button>
+                </div>
+            </form>
+            <div class="lobby__actions">
+                <button type="button" id="create">New match</button>
+                <button type="button" class="btn-secondary" id="search-matches">Search matches</button>
+            </div>
+
+            <form class="lobby__join" id="join-form">
+                <label for="match-id">Join a match</label>
+                <div class="lobby__row">
+                    <input type="text" id="match-id" placeholder="match id" autocomplete="off" spellcheck="false">
+                    <button type="submit">Join</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="game" id="game" hidden>
+            <div class="board-area" id="board-area">
+                <div class="board-frame">
+                    <div class="ranks" id="ranks"></div>
+                    <div>
+                        <div class="board" id="board"></div>
+                        <div class="files" id="files"></div>
+                    </div>
+                </div>
+                <div class="zoom">
+                    <button type="button" class="btn-secondary" id="zoom-out" aria-label="Zoom out">−</button>
+                    <span id="zoom-level" aria-live="polite">100%</span>
+                    <button type="button" class="btn-secondary" id="zoom-in" aria-label="Zoom in">+</button>
+                </div>
+                <div class="game__actions">
+                    <button type="button" id="swap-sides" class="btn-secondary" hidden>Offer side swap</button>
+                </div>
+            </div>
+
+            <aside class="panel" aria-label="Match information">
+                <div class="swiper" id="game-swiper">
+                    <div class="swiper-wrapper">
+                        <section class="swiper-slide panel__slide" aria-label="Match">
+                            <h2 class="panel__title">Match</h2>
+                            <dl class="panel__facts">
+                                <dt>Match</dt>
+                                <dd><code id="match-label"></code></dd>
+
+                                <dt>You</dt>
+                                <dd id="my-color"></dd>
+
+                                <dt>White clock</dt>
+                                <dd id="white-clock" class="clock">10:00</dd>
+
+                                <dt>Black clock</dt>
+                                <dd id="black-clock" class="clock">10:00</dd>
+
+                                <dt>Turn</dt>
+                                <dd id="turn"></dd>
+
+                                <dt>To play</dt>
+                                <dd id="current-player"></dd>
+                            </dl>
+
+                            <p class="panel__state" id="game-state"></p>
+
+                            <div class="captured">
+                                <h2>Captured</h2>
+                                <p class="captured__row"><span>White</span><span id="captured-white">—</span></p>
+                                <p class="captured__row"><span>Black</span><span id="captured-black">—</span></p>
+                            </div>
+
+                            <p class="log" id="log" role="status" aria-live="polite"></p>
+                        </section>
+
+                        <section class="swiper-slide panel__slide" aria-label="Connection">
+                            <h2 class="panel__title">Connection</h2>
+                            <dl class="panel__facts">
+                                <dt>Status</dt>
+                                <dd><span class="status" id="panel-connection" data-state="connecting">connecting...</span></dd>
+
+                                <dt>Match</dt>
+                                <dd><code id="connection-match-label"></code></dd>
+                            </dl>
+                            <p class="panel__connection-help">The connection status updates automatically if the game reconnects.</p>
+                        </section>
+                        
+                        <section class="swiper-slide panel__slide" aria-label="Move history">
+                            <h2 class="panel__title">Move history</h2>
+                            <ol class="move-history" id="move-history" aria-live="polite"></ol>
+                        </section>
+                    </div>
+                </div>
+                <div class="panel__navigation" aria-label="Information slides">
+                    <button type="button" class="btn-secondary panel__nav-button" id="panel-prev" aria-label="Previous slide">‹</button>
+                    <div class="swiper-pagination"></div>
+                    <button type="button" class="btn-secondary panel__nav-button" id="panel-next" aria-label="Next slide">›</button>
+                </div>
+                <div class="panel__actions">
+                    <button type="button" class="btn-secondary" id="leave-match">Leave match</button>
+                </div>
+            </aside>
+        </section>
+    </main>
+
+    <dialog id="waiting-dialog" class="waiting-dialog">
+        <div class="waiting-dialog__content">
+            <h2>Waiting for another player</h2>
+            <p>Your match is ready. Share the link with a player to start the game.</p>
+            <p class="waiting-dialog__countdown" id="waiting-countdown" aria-live="polite">2:00</p>
+            <button type="button" id="share-link">Share link</button>
+        </div>
+    </dialog>
+
+    <dialog id="search-dialog" class="search-dialog">
+        <div class="search-dialog__content">
+            <h2>Available matches</h2>
+            <p id="search-empty">No matches are waiting for an opponent.</p>
+            <ul id="search-results" class="search-results"></ul>
+            <button type="button" class="btn-secondary" id="search-close">Close</button>
+        </div>
+    </dialog>
+
+    <dialog id="swap-dialog" class="swap-dialog">
+        <form method="dialog" class="swap-dialog__content">
+            <h2 id="swap-dialog-title">Swap sides</h2>
+            <p id="swap-dialog-message"></p>
+            <div class="swap-dialog__actions">
+                <button type="button" id="swap-cancel" class="btn-secondary">Cancel</button>
+                <button type="button" id="swap-decline" class="btn-secondary" hidden>Decline</button>
+                <button type="button" id="swap-accept" hidden>Accept</button>
+                <button type="button" id="swap-confirm">Send offer</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@9/dist/browser/signalr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

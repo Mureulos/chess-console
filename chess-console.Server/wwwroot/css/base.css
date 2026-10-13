@@ -1,0 +1,67 @@
+:root {
+    --bg: #15171c;
+    --surface: #1d2027;
+    --border: #2d313b;
+    --text: #e6e8ec;
+    --muted: #949aa6;
+    --square-light: #e8d9b8;
+    --square-dark: #9a7b55;
+    --square-selected: #d8a657;
+    --square-target: #6fa88a;
+    --square-last: #c7b46a;
+    --square-capture: #d81b60;
+    --piece-white: #fbfbf8;
+    --piece-black: #1b1b1b;
+    --danger: #e4736b;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.5 "Segoe UI", system-ui, sans-serif;
+    overflow-x: hidden;
+}
+
+/* ===== Layout ===== */
+
+.app {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 40px 20px max(20px, env(safe-area-inset-bottom));
+}
+
+.app__header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 40px;
+}
+
+    .app__header h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+.status {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+    .status[data-state="connected"] {
+        color: var(--square-target);
+    }
+
+    .status[data-state="disconnected"] {
+        color: var(--danger);
+    }

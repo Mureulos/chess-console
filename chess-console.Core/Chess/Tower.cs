@@ -13,7 +13,7 @@ public class Tower : Piece
         return "♜";
     }
 
-    private bool canMove(Position position)
+    private bool CanMove(Position position)
     {
         Piece piece = board.piece(position);
         return piece == null || piece.color != color;
@@ -26,7 +26,7 @@ public class Tower : Piece
 
         // above
         position.defineValues(this.position.row - 1, this.position.column);
-        while (board.IsPositionValid(position) && canMove(position))
+        while (board.IsPositionValid(position) && CanMove(position))
         {
             matrix[position.row, position.column] = true;
             if (board.piece(position) != null && board.piece(position).color != color)
@@ -36,7 +36,7 @@ public class Tower : Piece
 
         // right
         position.defineValues(this.position.row, this.position.column + 1);
-        while (board.IsPositionValid(position) && canMove(position))
+        while (board.IsPositionValid(position) && CanMove(position))
         {
             matrix[position.row, position.column] = true;
             if (board.piece(position) != null && board.piece(position).color != color)
@@ -46,7 +46,7 @@ public class Tower : Piece
 
         // below
         position.defineValues(this.position.row + 1, this.position.column);
-        while (board.IsPositionValid(position) && canMove(position))
+        while (board.IsPositionValid(position) && CanMove(position))
         {
             matrix[position.row, position.column] = true;
             if (board.piece(position) != null && board.piece(position).color != color)
@@ -56,7 +56,7 @@ public class Tower : Piece
 
         // left
         position.defineValues(this.position.row, this.position.column - 1);
-        while (board.IsPositionValid(position) && canMove(position))
+        while (board.IsPositionValid(position) && CanMove(position))
         {
             matrix[position.row, position.column] = true;
             if (board.piece(position) != null && board.piece(position).color != color)
