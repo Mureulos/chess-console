@@ -1,9 +1,11 @@
+using System.Net;
 using System.Text.Json;
 using System.Threading.RateLimiting;
 using chess_console.Core.Matches;
 using chess_console.Server.Filters;
 using chess_console.Server.Hubs;
 using chess_console.Server.Services;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.SignalR;
 
@@ -11,6 +13,8 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 const string CorsPolicyName = "Frontend";
 string[] allowedOrigins =
     builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+string[] knownProxies =
+    builder.Configuration.GetSection("ForwardedHeaders:KnownProxies").Get<string[]>() ?? [];
 int rateLimitPermitLimit = GetPositiveSetting(
     builder.Configuration,
     "RateLimiting:SignalR:PermitLimit",
@@ -37,6 +41,21 @@ builder.Services.AddCors(options =>
                 .AllowCredentials();
         }
     });
+});
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardLimit = 1;
+
+    foreach (string proxy in knownProxies)
+    {
+        if (!IPAddress.TryParse(proxy, out IPAddress? address))
+            throw new InvalidOperationException(
+                $"Configuration 'ForwardedHeaders:KnownProxies' contains invalid IP '{proxy}'.");
+
+        options.KnownProxies.Add(address);
+    }
 });
 
 builder.Services
@@ -81,6 +100,9 @@ builder.Services.AddHostedService<MatchClockService>();
 WebApplication app = builder.Build();
 
 // O mesmo processo serve o front de wwwroot e o Hub — nada de host separado.
+app.UseForwardedHeaders();
+if (!app.Environment.IsDevelopment())
+    app.UseHsts();
 app.UseHttpsRedirection();
 app.UseDefaultFiles();
 app.UseStaticFiles();
