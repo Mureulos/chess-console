@@ -1,6 +1,12 @@
 import { ui, say, setConnectionState } from './dom.js';
 import { closeWaitingDialog, openSwapDialog, openWaitingDialog } from './ui.js';
-import { clearSelection, isMyTurn, pieceAt, state } from './state.js';
+import {
+    clearSelection,
+    isMyTurn,
+    pieceAt,
+    resetMatchState,
+    state
+} from './state.js';
 import { buildBoard, render } from './render.js';
 import { initializeGameSwiper } from './swiper-ui.js';
 
@@ -64,15 +70,7 @@ export async function leaveMatch() {
     }
 
     closeWaitingDialog();
-    Object.assign(state, {
-        matchId: null,
-        myColor: null,
-        board: null,
-        opponentPresent: false,
-        lastMove: null,
-        moveHistory: []
-    });
-    clearSelection();
+    resetMatchState();
     location.hash = '';
     ui.game.hidden = true;
     ui.lobby.hidden = false;
@@ -90,10 +88,7 @@ async function expireWaitingMatch() {
     }
 
     closeWaitingDialog();
-    state.matchId = null;
-    state.myColor = null;
-    state.board = null;
-    state.opponentPresent = false;
+    resetMatchState();
     location.hash = '';
     ui.game.hidden = true;
     ui.lobby.hidden = false;

@@ -64,6 +64,20 @@ export function clearSelection() {
     state.targets = [];
 }
 
+export function resetMatchState() {
+    Object.assign(state, {
+        matchId: null,
+        myColor: null,
+        board: null,
+        selected: null,
+        targets: [],
+        lastMove: null,
+        moveHistory: [],
+        opponentPresent: false,
+        clockSyncedAt: 0
+    });
+}
+
 export function clockSeconds(color) {
     const board = state.board;
     const seconds = color === 'White'

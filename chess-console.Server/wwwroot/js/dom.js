@@ -12,6 +12,7 @@ export const ui = {
     matchIdInput: $('match-id'),
     boardArea: $('board-area'),
     board: $('board'),
+    ranks: $('ranks'),
     files: $('files'),
     matchLabel: $('match-label'),
     myColor: $('my-color'),

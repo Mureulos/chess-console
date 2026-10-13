@@ -32,6 +32,7 @@ export function buildBoard() {
         .join('');
 
     ui.files.innerHTML = files.map(file => `<span>${file}</span>`).join('');
+    ui.ranks.innerHTML = ranks.map(rank => `<span>${rank}</span>`).join('');
 }
 
 export function render() {
@@ -68,11 +69,11 @@ export function render() {
 
 function renderPanel() {
     const board = state.board;
-    const glyphs = pieces => pieces.map(glyphOf).join('') || '�';
+    const glyphs = pieces => pieces.map(glyphOf).join('') || '—';
 
     ui.matchLabel.textContent = state.matchId;
     ui.connectionMatchLabel.textContent = state.matchId;
-    ui.myColor.textContent = state.myColor ?? '�';
+    ui.myColor.textContent = state.myColor ?? '—';
     ui.whiteClock.textContent = formatClock(clockSeconds('White'));
     ui.blackClock.textContent = formatClock(clockSeconds('Black'));
     ui.whiteClock.classList.toggle(
@@ -119,8 +120,8 @@ function describeState(board) {
     if (board.completed) {
         if (board.timeout) {
             return board.winner === state.myColor
-                ? `Time out � you won as ${board.winner}.`
-                : `Time out � victory for ${board.winner}.`;
+                ? `Time out — you won as ${board.winner}.`
+                : `Time out — victory for ${board.winner}.`;
         }
 
         if (board.draw) {
@@ -128,8 +129,8 @@ function describeState(board) {
         }
 
         return board.winner === state.myColor
-            ? `Checkmate � you won as ${board.winner}.`
-            : `Checkmate � victory for ${board.winner}.`;
+            ? `Checkmate — you won as ${board.winner}.`
+            : `Checkmate — victory for ${board.winner}.`;
     }
 
     if (!state.opponentPresent) {

@@ -31,8 +31,13 @@
 
         <section class="game" id="game" hidden>
             <div class="board-area" id="board-area">
-                <div class="board" id="board"></div>
-                <div class="files" id="files"></div>
+                <div class="board-frame">
+                    <div class="ranks" id="ranks"></div>
+                    <div>
+                        <div class="board" id="board"></div>
+                        <div class="files" id="files"></div>
+                    </div>
+                </div>
                 <div class="zoom">
                     <button type="button" class="btn-secondary" id="zoom-out" aria-label="Zoom out">−</button>
                     <span id="zoom-level" aria-live="polite">100%</span>
