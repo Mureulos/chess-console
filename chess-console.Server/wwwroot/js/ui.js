@@ -55,7 +55,8 @@ export function registerUiEvents({
             await navigator.clipboard.writeText(location.href);
 
             const original = ui.shareLink.textContent;
-            ui.shareLink.textContent = 'Copied!';
+            ui.shareLink.textContent = 'Link copied!';
+            say('Match link copied to the clipboard.');
 
             setTimeout(() => {
                 ui.shareLink.textContent = original;
@@ -127,12 +128,12 @@ export function openSwapDialog(message, mode) {
     ui.swapDialog.showModal();
 }
 
-export function openWaitingDialog(onTimeout) {
+export function openWaitingDialog(onTimeout, durationSeconds = WAITING_TIME_SECONDS) {
     clearWaitingTimer();
-    updateWaitingCountdown(WAITING_TIME_SECONDS);
+    updateWaitingCountdown(durationSeconds);
     ui.waitingDialog.showModal();
 
-    let remaining = WAITING_TIME_SECONDS;
+    let remaining = durationSeconds;
     waitingTimer = setInterval(() => {
         remaining -= 1;
         updateWaitingCountdown(remaining);
