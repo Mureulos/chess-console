@@ -10,6 +10,8 @@ import {
 import { buildBoard, render } from './render.js';
 import { initializeGameSwiper } from './swiper-ui.js';
 
+const INITIAL_WAITING_TIME_SECONDS = 7 * 60;
+
 export const connection = new signalR.HubConnectionBuilder()
     .withUrl('/hubs/chess', {
         accessTokenFactory: () => state.playerToken ?? ''
@@ -51,7 +53,7 @@ export async function enterMatch(method, matchId) {
         say(`You play as ${match.color}.`);
     } else if (!state.opponentPresent) {
         say('Match created. Waiting for another player.');
-        openWaitingDialog(expireWaitingMatch);
+        openWaitingDialog(expireWaitingMatch, INITIAL_WAITING_TIME_SECONDS);
     }
 }
 
